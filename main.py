@@ -35,9 +35,34 @@ start_jump = 0
 
 img = pygame.image.load("assets\idle_test.png")
 
+#sprite stages
+idle_sprite = 1
+left_sprite = 1
+right_sprite = 1
+
+def get_sprite():
+    global img, idle, left_sprite, right_sprite
+
+    if state == "idle":
+        if idle_sprite == 1:
+            img = pygame.image.load("assets\idle_test.png")
+
+    if state == "r_right":
+        if right_sprite == 1:
+            img = pygame.image.load("assets\\right1.png")
+            right_sprite = 2
+        elif right_sprite == 2:
+            img = pygame.image.load("assets\\right2.png")
+            right_sprite = 1
+
+
+
+
+
 def draw_screen():
     global player
 
+    get_sprite()
     screen.fill(BGC)
     screen.blit(screen, player)
     #player = pygame.draw.rect(screen, (255, 0, 0), (player_x, player_y, 64, 96))
@@ -84,8 +109,7 @@ while running:
         if state != "fall" and state != "jump_up":
             state = "r_left"
     elif key[pygame.K_RIGHT]:
-        if player_x <= 1216 and not (map[(player_y + 1) // 64][player_x // 64 + 1] == 1 or map[(player_y + 95) // 64][
-            player_x // 64 + 1] == 1 or map[(player_y + 48) // 64][player_x // 64 + 1] == 1):
+        if player_x <= 1216 and not (map[(player_y + 1) // 64][player_x // 64 + 1] == 1 or map[(player_y + 95) // 64][player_x // 64 + 1] == 1 or map[(player_y + 48) // 64][player_x // 64 + 1] == 1):
             player_x += speed
         if state != "fall" and state != "jump_up":
             state = "r_right"
