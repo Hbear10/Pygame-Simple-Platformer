@@ -33,14 +33,15 @@ state = "idle"
 
 start_jump = 0
 
-
+img = pygame.image.load("assets\idle_test.png")
 
 def draw_screen():
     global player
 
     screen.fill(BGC)
     screen.blit(screen, player)
-    player = pygame.draw.rect(screen, (255, 0, 0), (player_x, player_y, 64, 96))
+    #player = pygame.draw.rect(screen, (255, 0, 0), (player_x, player_y, 64, 96))
+    screen.blit(img, (player_x,player_y))
 
     y_count = 0
     for y in map:
