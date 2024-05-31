@@ -48,12 +48,36 @@ def get_sprite():
             img = pygame.image.load("assets\idle_test.png")
 
     if state == "r_right":
-        if right_sprite == 1:
+        if 1 <= right_sprite <= 10:
             img = pygame.image.load("assets\\right1.png")
-            right_sprite = 2
-        elif right_sprite == 2:
+            right_sprite += 1
+        elif 11 <= right_sprite <= 20:
             img = pygame.image.load("assets\\right2.png")
+            right_sprite += 1
+        elif 21 <= right_sprite <= 30:
+            img = pygame.image.load("assets\\right3.png")
+            right_sprite += 1
+        elif 31 <= right_sprite <= 40:
+            img = pygame.image.load("assets\\right4.png")
+            right_sprite += 1
+        else:
             right_sprite = 1
+
+    if state == "r_left":
+        if 1 <= left_sprite <= 10:
+            img = pygame.image.load("assets\\left1.png")
+            left_sprite += 1
+        elif 11 <= left_sprite <= 20:
+            img = pygame.image.load("assets\\left2.png")
+            left_sprite += 1
+        elif 21 <= left_sprite <= 30:
+            img = pygame.image.load("assets\\left3.png")
+            left_sprite += 1
+        elif 31 <= left_sprite <= 40:
+            img = pygame.image.load("assets\\left4.png")
+            left_sprite += 1
+        else:
+            left_sprite = 1
 
 
 
