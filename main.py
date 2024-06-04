@@ -25,6 +25,7 @@ running = True
 gravity = 2
 player_x = 64
 player_y = 640
+direction = "r"
 
 speed = 2
 jumpspeed = 2
@@ -33,21 +34,38 @@ state = "idle"
 
 start_jump = 0
 
-img = pygame.image.load("assets\idle_test.png")
+img = pygame.image.load("assets\idle1_right.png")
 
-#sprite stages
+# sprite stages
 idle_sprite = 1
 left_sprite = 1
 right_sprite = 1
 
+
 def get_sprite():
-    global img, idle, left_sprite, right_sprite
+    global img, left_sprite, right_sprite, idle_sprite
 
-    if state == "idle":
-        if idle_sprite == 1:
-            img = pygame.image.load("assets\idle_test.png")
+    if state == "idle" and direction == "r":
+        if 1 <= idle_sprite <= 100:
+            img = pygame.image.load("assets\\idle1_right.png")
+            idle_sprite += 1
+        elif 101 <= idle_sprite <= 200:
+            img = pygame.image.load("assets\\idle2_right.png")
+            idle_sprite += 1
+        else:
+            idle_sprite = 1
 
-    if state == "r_right":
+    if state == "idle" and direction == "l":
+        if 1 <= idle_sprite <= 100:
+            img = pygame.image.load("assets\\idle1_left.png")
+            idle_sprite += 1
+        elif 101 <= idle_sprite <= 200:
+            img = pygame.image.load("assets\\idle2_left.png")
+            idle_sprite += 1
+        else:
+            idle_sprite = 1
+
+    if state == "run" and direction == "r":
         if 1 <= right_sprite <= 10:
             img = pygame.image.load("assets\\right1.png")
             right_sprite += 1
@@ -63,7 +81,7 @@ def get_sprite():
         else:
             right_sprite = 1
 
-    if state == "r_left":
+    if state == "run" and direction == "l":
         if 1 <= left_sprite <= 10:
             img = pygame.image.load("assets\\left1.png")
             left_sprite += 1
@@ -79,8 +97,17 @@ def get_sprite():
         else:
             left_sprite = 1
 
+    if state == "jump_up":
+        if direction == "l":
+            img = pygame.image.load("assets\\jump_l.png")
+        else:
+            img = pygame.image.load("assets\\jump_r.png")
 
-
+    if state == "fall":
+        if direction == "l":
+            img = pygame.image.load("assets\\fall_l.png")
+        else:
+            img = pygame.image.load("assets\\fall_r.png")
 
 
 def draw_screen():
@@ -89,8 +116,8 @@ def draw_screen():
     get_sprite()
     screen.fill(BGC)
     screen.blit(screen, player)
-    #player = pygame.draw.rect(screen, (255, 0, 0), (player_x, player_y, 64, 96))
-    screen.blit(img, (player_x,player_y))
+    # player = pygame.draw.rect(screen, (255, 0, 0), (player_x, player_y, 64, 96))
+    screen.blit(img, (player_x, player_y))
 
     y_count = 0
     for y in map:
@@ -131,18 +158,20 @@ while running:
                 map[(player_y + 48) // 64][player_x // 64] == 1):
             player_x -= speed
         if state != "fall" and state != "jump_up":
-            state = "r_left"
+            state = "run"
+            direction = "l"
     elif key[pygame.K_RIGHT]:
         if player_x <= 1216 and not (map[(player_y + 1) // 64][player_x // 64 + 1] == 1 or map[(player_y + 95) // 64][player_x // 64 + 1] == 1 or map[(player_y + 48) // 64][player_x // 64 + 1] == 1):
             player_x += speed
         if state != "fall" and state != "jump_up":
-            state = "r_right"
+            state = "run"
+            direction = "r"
     else:
         if state != "fall" and state != "jump_up":
             state = "idle"
 
     # checks if there is anything bellow player to check if you should fall
-    if state == "idle" or state == "r_left" or state == "r_right":
+    if state == "idle" or state == "run":
         if player_y > past_y:
             state = "fall"
         if map[(player_y + 97) // 64][player_x // 64] == 0 and map[(player_y + 97) // 64][player_x // 64 + 1] == 0:
@@ -155,8 +184,7 @@ while running:
             player_y -= jumpspeed
     elif state == "fall":
         # bottom collision and gravity
-        if map[(player_y + 96) // 64][(player_x + 1) // 64] == 1 or map[(player_y + 96) // 64][
-            (player_x + 63) // 64] == 1:
+        if map[(player_y + 96) // 64][(player_x + 1) // 64] == 1 or map[(player_y + 96) // 64][(player_x + 63) // 64] == 1:
             state = "idle"
         else:
             player_y += gravity
