@@ -11,39 +11,45 @@ world_map = [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
-             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, "x"],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, "x"],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, "x"],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
+             [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, "x"],
-             [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
-             [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
-             [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "x"],
              [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"]]
 
 running = True
-gravity_and_jumpspeed = 2
+gravity_and_jumpspeed = 0.02
 player_x = 64
-player_y = 640
+player_y = 320
 direction = "r"
 
 speed = 2
 
 state = "idle"
 
-start_jump = 0
 
 img = pygame.image.load("assets\\idle1_right.png")
 
+x_velocity = 0
+y_velocity = 0
+max_x_velocity = 2
+max_y_velocity = 3
+
+x_acceleration = 0.02
+start_jump = 0
 # sprite stages
 idle_sprite = 1
 left_sprite = 1
 right_sprite = 1
 
 #length of cyote(frames)
-cyote_time = 15
+coyote_time = 15
 ##update cyote
-cyote = cyote_time
+coyote = coyote_time
 
 
 def get_sprite():
@@ -148,58 +154,103 @@ while running:
                 if state != "jump_up" and state != "fall":
                     state = "jump_up"
                     start_jump = player_y
+                    y_velocity = max_y_velocity
 
     key = pygame.key.get_pressed()
     if key[pygame.K_LEFT] and key[pygame.K_RIGHT]:
         if state != "fall" and state != "jump_up":
             state = "idle"
+            x_velocity = 0
+
     elif key[pygame.K_LEFT]:
         direction = "l"
         if player_x > 0 and not (
-                world_map[(player_y + 1) // 64][player_x // 64] == 1 or world_map[(player_y + 95) // 64][player_x // 64] == 1 or
-                world_map[(player_y + 48) // 64][player_x // 64] == 1):
-            player_x -= speed
+                world_map[int((player_y + 1) // 64)][int(player_x // 64)] == 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64)] == 1 or
+                world_map[int((player_y + 48) // 64)][int(player_x // 64)] == 1):
+            if x_velocity > -max_x_velocity:
+                x_velocity -= x_acceleration
         if state != "fall" and state != "jump_up":
             state = "run"
 
     elif key[pygame.K_RIGHT]:
         direction = "r"
-        if player_x <= 1216 and not (world_map[(player_y + 1) // 64][player_x // 64 + 1] == 1 or world_map[(player_y + 95) // 64][player_x // 64 + 1] == 1 or world_map[(player_y + 48) // 64][player_x // 64 + 1] == 1):
-            player_x += speed
+        if player_x <= 1216 and not (world_map[int((player_y + 1) // 64)][int(player_x // 64 + 1)] == 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64 + 1)] == 1 or world_map[int((player_y + 48) // 64)][int(player_x // 64 + 1)] == 1):
+            if x_velocity < max_x_velocity:
+                x_velocity += x_acceleration
         if state != "fall" and state != "jump_up":
             state = "run"
 
     else:
-        if state != "fall" and state != "jump_up":
+
+        if x_velocity != 0:
+            if x_velocity > 0:
+                x_velocity -= x_acceleration
+            elif x_velocity < 0:
+                x_velocity += x_acceleration
+
+            if -0.025 < x_velocity < 0.025:
+                x_velocity = 0
+        if state != "fall" and state != "jump_up" and x_velocity == 0:
             state = "idle"
 
     if state == "idle" or state == "run":
+        y_velocity = 0
+
+        player_y = (player_y // 64) * 64 + 32
+
         # checks if there is anything bellow player to check if you should fall and allows for cyote time
-        if world_map[(player_y + 97) // 64][player_x // 64] == 0 and world_map[(player_y + 97) // 64][player_x // 64 + 1] == 0:
-            if cyote == 0:
+        if world_map[int((player_y + 97) // 64)][int(player_x // 64)] == 0 and world_map[int((player_y + 97) // 64)][int(player_x // 64 + 1)] == 0:
+            if coyote == 0:
                 state = "fall"
             else:
-                cyote -= 1
+                coyote -= 1
         else:
-            cyote = cyote_time
+            coyote = coyote_time
+
     elif state == "jump_up":
-        if player_y <= start_jump - 256:
+        if -0.025 < y_velocity < 0.025:
             state = "fall"
         else:
-            # set jump height
-            player_y -= gravity_and_jumpspeed
+            y_velocity -= gravity_and_jumpspeed
     elif state == "fall":
-        # bottom collision and gravity
-        if world_map[(player_y + 96) // 64][(player_x + 1) // 64] == 1 or world_map[(player_y + 96) // 64][(player_x + 63) // 64] == 1:
+        # feet collision and gravity
+        if world_map[int((player_y + 96) // 64)][int((player_x + 1) // 64)] == 1 or world_map[int((player_y + 96) // 64)][int((player_x + 63) // 64)] == 1:
+            print(1)
+
             state = "idle"
         else:
-            player_y += gravity_and_jumpspeed
+            if y_velocity < max_y_velocity:
+                y_velocity -= gravity_and_jumpspeed
 
-    # top
-    if world_map[player_y // 64][(player_x + 1) // 64] == 1 or world_map[player_y // 64][(player_x + 63) // 64] == 1:
+    #side collisions
+    if state == "run" or state == "jump_up" or state == "fall":
+        if direction == "r":
+            if player_x > 1216 or (world_map[int((player_y + 1) // 64)][int(player_x // 64 + 1)] == 1 or
+                                   world_map[int((player_y + 95) // 64)][int(player_x // 64 + 1)] == 1 or
+                                   world_map[int((player_y + 48) // 64)][int(player_x // 64 + 1)] == 1):
+                x_velocity = 0
+        elif direction == "l":
+            if player_x < 0 or (world_map[int((player_y + 1) // 64)][int(player_x // 64)] == 1 or
+                                world_map[int((player_y + 95) // 64)][int(player_x // 64)] == 1 or
+                                world_map[int((player_y + 48) // 64)][int(player_x // 64)] == 1):
+                x_velocity = 0
+
+    # head
+    if world_map[int(player_y // 64)][int((player_x + 1) // 64)] == 1 or world_map[int(player_y // 64)][int((player_x + 63) // 64)] == 1:
+        if world_map[int((player_y-1) // 64)][int((player_x + 1) // 64)] == 1 or world_map[int((player_y-1) // 64)][
+            int((player_x + 63) // 64)] == 1:
+            player_y += 1
+        y_velocity = 0
         state = "fall"
 
-    #print(state)
+    player_y = round(player_y, 2)
+    player_x = round(player_x, 2)
+
+    #print(player_x, "                ", player_y)
+    print(state)
+
+    player_x += x_velocity
+    player_y -= y_velocity
 
     draw_screen()
     pygame.display.flip()
