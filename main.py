@@ -1,32 +1,29 @@
 import pygame
 import sys
+import csv
 
 clock = pygame.time.Clock()
 #set game FPS
 FPS = 60
 
 
-
-
 pygame.init()
 BGC = (255, 255, 255)
 screen = pygame.display.set_mode((1280, 960))
 
-world_map = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,"x"],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,"x"]]
+world_map = []
+
+with open("map.csv", newline="") as csvfile:
+    mapreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+    for row in mapreader:
+        world_map.append(row[0].split(","))
+print((world_map[0]))
+
+for i in range(len(world_map)):
+    for o in range(len(world_map[i])):
+        if world_map[i][o] != "x":
+            world_map[i][o] = int(world_map[i][o])
+
 
 running = True
 
@@ -141,13 +138,68 @@ def draw_screen():
     player_offset = player_x % 64 + 32
     player_bit = (player_x//64)-9.5
 
-    screen.blit(img, (608, player_y))
+    tile_img = pygame.image.load("assets\\grass.png")
 
     for y in range(15):
         for x in range(22):
             tile = world_map[y][int(player_bit + x)]
+            # grass
             if tile == 1:
-                pygame.draw.rect(screen, (0, 0, 0), (x*64-player_offset, y * 64, 64, 64))
+                tile_img = pygame.image.load("assets\\grass.png")
+            # dirt
+            elif tile == 2:
+                tile_img = pygame.image.load("assets\\dirt.png")
+                
+            #right side missing/left cup
+            elif tile == 3:
+                tile_img = pygame.image.load("assets\\grass_leftcup.png")
+            #left side missing/right cup
+            elif tile == 4:
+                tile_img = pygame.image.load("assets\\grass_rightcup.png")
+            # top side missing/bottom cup
+            elif tile == 5:
+                tile_img = pygame.image.load("assets\\grass_bottomcup.png")
+            # bottom side missing/top cup
+            elif tile == 6:
+                tile_img = pygame.image.load("assets\\grass_topcup.png")
+
+            #bottom left corner
+            elif tile == 7:
+                tile_img = pygame.image.load("assets\\grass_bottomleftcorner.png")
+            #bottom right corner
+            elif tile == 8:
+                tile_img = pygame.image.load("assets\\grass_bottomrightcorner.png")
+            #top left corner
+            elif tile == 9:
+                tile_img = pygame.image.load("assets\\grass_topleftcorner.png")
+            #top right corner
+            elif tile == 10:
+                tile_img = pygame.image.load("assets\\grass_toprightcorner.png")
+
+            # right
+            elif tile == 11:
+                tile_img = pygame.image.load("assets\\grass_right.png")
+            # left
+            elif tile == 12:
+                tile_img = pygame.image.load("assets\\grass_left.png")
+            # top
+            elif tile == 13:
+                tile_img = pygame.image.load("assets\\grass_top.png")
+            #bottom
+            elif tile == 14:
+                tile_img = pygame.image.load("assets\\grass_bottom.png")
+
+            # horizontal tube
+            elif tile == 15:
+                tile_img = pygame.image.load("assets\\grass_horizontal_tube.png")
+            # vertical tube
+            elif tile == 16:
+                tile_img = pygame.image.load("assets\\grass_vertical_tube.png")
+
+            if tile != 0:
+                screen.blit(tile_img, (x*64-player_offset, y * 64))
+
+    screen.blit(img, (608, player_y))
 
 
 player = pygame.draw.rect(screen, (255, 0, 0), (player_x, player_y, 64, 96))
@@ -175,8 +227,8 @@ while running:
 
     elif key[pygame.K_LEFT]:
         direction = "l"
-        if (world_map[int((player_y + 1) // 64)][int(player_x // 64)] == 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64)] == 1 or
-                world_map[int((player_y + 48) // 64)][int(player_x // 64)] == 1):
+        if (world_map[int((player_y + 1) // 64)][int(player_x // 64)] >= 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64)] >= 1 or
+                world_map[int((player_y + 48) // 64)][int(player_x // 64)] >= 1):
             x_velocity = 0
         else:
             if x_velocity > -max_x_velocity:
@@ -187,7 +239,7 @@ while running:
 
     elif key[pygame.K_RIGHT]:
         direction = "r"
-        if (world_map[int((player_y + 1) // 64)][int(player_x // 64 + 1)] == 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64 + 1)] == 1 or world_map[int((player_y + 48) // 64)][int(player_x // 64 + 1)] == 1):
+        if (world_map[int((player_y + 1) // 64)][int(player_x // 64 + 1)] >= 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64 + 1)] >= 1 or world_map[int((player_y + 48) // 64)][int(player_x // 64 + 1)] >= 1):
             x_velocity = 0
         else:
             if x_velocity < max_x_velocity:
@@ -229,7 +281,7 @@ while running:
             y_velocity -= jumpspeed
     elif state == "fall":
         # feet collision and gravity
-        if world_map[int((player_y + 96) // 64)][int((player_x + 1) // 64)] == 1 or world_map[int((player_y + 96) // 64)][int((player_x + 63) // 64)] == 1:
+        if world_map[int((player_y + 96) // 64)][int((player_x + 1) // 64)] >= 1 or world_map[int((player_y + 96) // 64)][int((player_x + 63) // 64)] >= 1:
             print(1)
 
             state = "idle"
@@ -251,9 +303,9 @@ while running:
     #             x_velocity = 0
 
     # head
-    if world_map[int(player_y // 64)][int((player_x + 1) // 64)] == 1 or world_map[int(player_y // 64)][int((player_x + 63) // 64)] == 1:
-        if world_map[int((player_y-1) // 64)][int((player_x + 1) // 64)] == 1 or \
-           world_map[int((player_y-1) // 64)][int((player_x + 63) // 64)] == 1:
+    if world_map[int(player_y // 64)][int((player_x + 1) // 64)] >= 1 or world_map[int(player_y // 64)][int((player_x + 63) // 64)] >= 1:
+        if world_map[int((player_y-1) // 64)][int((player_x + 1) // 64)] >= 1 or \
+           world_map[int((player_y-1) // 64)][int((player_x + 63) // 64)] >= 1:
             player_y += 1
         y_velocity = 0
         state = "fall"
@@ -263,10 +315,10 @@ while running:
 
     #print(player_x, "                ", player_y)
     #print(state)
-    print(x_velocity)
+    #print(x_velocity)
 
     clock.tick(FPS)
-    #print(pygame.time.Clock.get_fps(clock))
+    print(pygame.time.Clock.get_fps(clock))
 
     player_x += x_velocity
     player_y -= y_velocity
