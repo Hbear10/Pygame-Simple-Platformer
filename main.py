@@ -4,7 +4,7 @@ import csv
 
 clock = pygame.time.Clock()
 #set game FPS
-FPS = 200
+FPS = 60
 
 
 pygame.init()
@@ -41,11 +41,11 @@ x_velocity = 0
 y_velocity = 0
 
 max_x_velocity = 10
-max_y_up_velocity = 6.25
+max_y_up_velocity = 7
 max_y_down_velocity = 10
 
-jumpspeed = 0.075
-gravity_fall = 0.25
+jumpspeed = 0.1
+gravity_fall = 0.5
 x_acceleration = 0.25
 start_jump = 0
 
@@ -222,8 +222,6 @@ def draw_screen():
     screen.blit(img, (608, player_y))
 
 
-player = pygame.draw.rect(screen, (255, 0, 0), (player_x, player_y, 64, 96))
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -309,39 +307,54 @@ while running:
             if y_velocity < max_y_down_velocity:
                 y_velocity -= gravity_fall
 
-    #side collisions
-    # if state == "run" or state == "jump_up" or state == "fall":
-    #     if direction == "r":
-    #         if (world_map[int((player_y + 1) // 64)][int(player_x // 64 + 1)] == 1 or
-    #             world_map[int((player_y + 95) // 64)][int(player_x // 64 + 1)] == 1 or
-    #             world_map[int((player_y + 48) // 64)][int(player_x // 64 + 1)] == 1):
-    #             x_velocity = 0
-    #     elif direction == "l":
-    #         if (world_map[int((player_y + 1) // 64)][int(player_x // 64)] == 1 or
-    #             world_map[int((player_y + 95) // 64)][int(player_x // 64)] == 1 or
-    #             world_map[int((player_y + 48) // 64)][int(player_x // 64)] == 1):
-    #             x_velocity = 0
-
-    # head
-    if world_map[int(player_y // 64)][int((player_x + 1) // 64)] >= 1 or world_map[int(player_y // 64)][int((player_x + 63) // 64)] >= 1:
-        if world_map[int((player_y-1) // 64)][int((player_x + 1) // 64)] >= 1 or \
-           world_map[int((player_y-1) // 64)][int((player_x + 63) // 64)] >= 1:
-            player_y += 1
-        y_velocity = 0
-        state = "fall"
+    #collisions()
 
     player_y = round(player_y, 2)
     player_x = round(player_x, 2)
 
     #print(player_x, "                ", player_y)
     #print(state)
-    #print(x_velocity)
+    print(x_velocity)
 
     clock.tick(FPS)
-    print(pygame.time.Clock.get_fps(clock))
+    #print(pygame.time.Clock.get_fps(clock))
 
-    player_x += x_velocity
-    player_y -= y_velocity
+    if x_velocity > 0:
+        x = player_x + x_velocity + 64
+        if (world_map[int((player_y + 1) // 64)][int(x // 64)] == 0 and world_map[int((player_y + 95) // 64)][int(x // 64)] == 0 and
+        world_map[int((player_y + 48) // 64)][int(x // 64)] == 0):
+            if state == "jump_up" or state == "fall":
+                player_x += x_velocity / 1.5
+            else:
+                player_x += x_velocity
+        else:
+            #player_x = player_x//64 * 64
+            x_velocity = 0
+    elif x_velocity < 0:
+        x = player_x + x_velocity
+        if (world_map[int((player_y + 1) // 64)][int(x // 64)] == 0 and world_map[int((player_y + 95) // 64)][int(x // 64)] == 0 and
+        world_map[int((player_y + 48) // 64)][int(x // 64)] == 0):
+            if state == "jump_up" or state == "fall":
+                player_x += x_velocity / 1.5
+            else:
+                player_x += x_velocity
+        else:
+            x_velocity = 0
+
+    if y_velocity > 0:
+        y = player_y - y_velocity
+        if world_map[int(y // 64)][int((player_x + 1) // 64)] == 0 or world_map[int(y // 64)][int((player_x + 63) // 64)] == 0:
+            player_y -= y_velocity
+        else:
+            y_velocity = 0
+            state = "fall"
+    elif y_velocity < 0:
+        y = player_y + 96 - y_velocity
+        if world_map[int(y // 64)][int((player_x + 1) // 64)] == 0 or world_map[int(y // 64)][int((player_x + 63) // 64)] == 0:
+            player_y -= y_velocity
+        else:
+            y_velocity = 0
+            state = "idle"
 
     draw_screen()
     pygame.display.flip()
