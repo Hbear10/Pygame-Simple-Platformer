@@ -4,7 +4,7 @@ import csv
 
 clock = pygame.time.Clock()
 #set game FPS
-FPS = 60
+FPS = 200
 
 
 pygame.init()
@@ -34,7 +34,8 @@ direction = "r"
 state = "idle"
 
 
-img = pygame.image.load("assets\\idle1_right.png")
+img = pygame.image.load("assets\\idle1_right.png").convert_alpha()
+background_img = pygame.image.load("assets\\background.png").convert()
 
 x_velocity = 0
 y_velocity = 0
@@ -66,138 +67,157 @@ def get_sprite():
 
     if state == "idle" and direction == "r":
         if 1 <= idle_sprite <= 100:
-            img = pygame.image.load("assets\\idle1_right.png")
+            img = pygame.image.load("assets\\idle1_right.png").convert_alpha()
             idle_sprite += 1
         elif 101 <= idle_sprite <= 200:
-            img = pygame.image.load("assets\\idle2_right.png")
+            img = pygame.image.load("assets\\idle2_right.png").convert_alpha()
             idle_sprite += 1
         else:
             idle_sprite = 1
 
     if state == "idle" and direction == "l":
         if 1 <= idle_sprite <= 100:
-            img = pygame.image.load("assets\\idle1_left.png")
+            img = pygame.image.load("assets\\idle1_left.png").convert_alpha()
             idle_sprite += 1
         elif 101 <= idle_sprite <= 200:
-            img = pygame.image.load("assets\\idle2_left.png")
+            img = pygame.image.load("assets\\idle2_left.png").convert_alpha()
             idle_sprite += 1
         else:
             idle_sprite = 1
 
     if state == "run" and direction == "r":
         if 1 <= right_sprite <= 10:
-            img = pygame.image.load("assets\\right1.png")
+            img = pygame.image.load("assets\\right1.png").convert_alpha()
             right_sprite += 1
         elif 11 <= right_sprite <= 20:
-            img = pygame.image.load("assets\\right2.png")
+            img = pygame.image.load("assets\\right2.png").convert_alpha()
             right_sprite += 1
         elif 21 <= right_sprite <= 30:
-            img = pygame.image.load("assets\\right3.png")
+            img = pygame.image.load("assets\\right3.png").convert_alpha()
             right_sprite += 1
         elif 31 <= right_sprite <= 40:
-            img = pygame.image.load("assets\\right4.png")
+            img = pygame.image.load("assets\\right4.png").convert_alpha()
             right_sprite += 1
         else:
             right_sprite = 1
 
     if state == "run" and direction == "l":
         if 1 <= left_sprite <= 10:
-            img = pygame.image.load("assets\\left1.png")
+            img = pygame.image.load("assets\\left1.png").convert_alpha()
             left_sprite += 1
         elif 11 <= left_sprite <= 20:
-            img = pygame.image.load("assets\\left2.png")
+            img = pygame.image.load("assets\\left2.png").convert_alpha()
             left_sprite += 1
         elif 21 <= left_sprite <= 30:
-            img = pygame.image.load("assets\\left3.png")
+            img = pygame.image.load("assets\\left3.png").convert_alpha()
             left_sprite += 1
         elif 31 <= left_sprite <= 40:
-            img = pygame.image.load("assets\\left4.png")
+            img = pygame.image.load("assets\\left4.png").convert_alpha()
             left_sprite += 1
         else:
             left_sprite = 1
 
     if state == "jump_up":
         if direction == "l":
-            img = pygame.image.load("assets\\jump_l.png")
+            img = pygame.image.load("assets\\jump_l.png").convert_alpha()
         else:
-            img = pygame.image.load("assets\\jump_r.png")
+            img = pygame.image.load("assets\\jump_r.png").convert_alpha()
 
     if state == "fall":
         if direction == "l":
-            img = pygame.image.load("assets\\fall_l.png")
+            img = pygame.image.load("assets\\fall_l.png").convert_alpha()
         else:
-            img = pygame.image.load("assets\\fall_r.png")
+            img = pygame.image.load("assets\\fall_r.png").convert_alpha()
+
+
+def load_sprites():
+    global grass_img, dirt_img,leftcup_img,rightcup_img,bottomcup_img,topcup_img,bottomleftcorner_img,bottomrightcorner_img,topleftcorner_img,toprightcorner_img,right_img,\
+    left_img, top_img,bottom_img,horizontaltube_img,verticaltube_img
+    grass_img = pygame.image.load("assets\\grass.png").convert()
+    dirt_img = pygame.image.load("assets\\dirt.png").convert()
+    leftcup_img = pygame.image.load("assets\\grass_leftcup.png").convert()
+    rightcup_img = pygame.image.load("assets\\grass_rightcup.png").convert()
+    bottomcup_img = pygame.image.load("assets\\grass_bottomcup.png").convert()
+    topcup_img = pygame.image.load("assets\\grass_topcup.png").convert()
+    bottomleftcorner_img = pygame.image.load("assets\\grass_bottomleftcorner.png").convert()
+    bottomrightcorner_img = pygame.image.load("assets\\grass_bottomrightcorner.png").convert()
+    topleftcorner_img = pygame.image.load("assets\\grass_topleftcorner.png").convert()
+    toprightcorner_img = pygame.image.load("assets\\grass_toprightcorner.png").convert()
+    right_img = pygame.image.load("assets\\grass_right.png").convert()
+    left_img = pygame.image.load("assets\\grass_left.png").convert()
+    top_img = pygame.image.load("assets\\grass_top.png").convert()
+    bottom_img = pygame.image.load("assets\\grass_bottom.png").convert()
+    horizontaltube_img = pygame.image.load("assets\\grass_horizontal_tube.png").convert()
+    verticaltube_img = pygame.image.load("assets\\grass_vertical_tube.png").convert()
+
+
+load_sprites()
 
 
 def draw_screen():
     global player
 
     get_sprite()
-    screen.fill(BGC)
+    #screen.fill(BGC)
+    screen.blit(background_img, (0,0))
 
     player_offset = player_x % 64 + 32
     player_bit = (player_x//64)-9.5
 
-    tile_img = pygame.image.load("assets\\grass.png")
+    tile_img = pygame.image.load("assets\\grass.png").convert()
 
+    #tile map
     for y in range(15):
         for x in range(22):
             tile = world_map[y][int(player_bit + x)]
             # grass
             if tile == 1:
-                tile_img = pygame.image.load("assets\\grass.png")
+                screen.blit(grass_img, (x * 64 - player_offset, y * 64))
             # dirt
             elif tile == 2:
-                tile_img = pygame.image.load("assets\\dirt.png")
-                
+                screen.blit(dirt_img, (x * 64 - player_offset, y * 64))
             #right side missing/left cup
             elif tile == 3:
-                tile_img = pygame.image.load("assets\\grass_leftcup.png")
+                screen.blit(leftcup_img, (x * 64 - player_offset, y * 64))
             #left side missing/right cup
             elif tile == 4:
-                tile_img = pygame.image.load("assets\\grass_rightcup.png")
+                screen.blit(rightcup_img, (x * 64 - player_offset, y * 64))
             # top side missing/bottom cup
             elif tile == 5:
-                tile_img = pygame.image.load("assets\\grass_bottomcup.png")
+                screen.blit(bottomcup_img, (x * 64 - player_offset, y * 64))
             # bottom side missing/top cup
             elif tile == 6:
-                tile_img = pygame.image.load("assets\\grass_topcup.png")
-
+                screen.blit(topcup_img, (x * 64 - player_offset, y * 64))
             #bottom left corner
             elif tile == 7:
-                tile_img = pygame.image.load("assets\\grass_bottomleftcorner.png")
+                screen.blit(bottomleftcorner_img, (x * 64 - player_offset, y * 64))
             #bottom right corner
             elif tile == 8:
-                tile_img = pygame.image.load("assets\\grass_bottomrightcorner.png")
+                screen.blit(bottomrightcorner_img, (x * 64 - player_offset, y * 64))
             #top left corner
             elif tile == 9:
-                tile_img = pygame.image.load("assets\\grass_topleftcorner.png")
+                screen.blit(topleftcorner_img, (x * 64 - player_offset, y * 64))
             #top right corner
             elif tile == 10:
-                tile_img = pygame.image.load("assets\\grass_toprightcorner.png")
-
+                screen.blit(toprightcorner_img, (x * 64 - player_offset, y * 64))
             # right
             elif tile == 11:
-                tile_img = pygame.image.load("assets\\grass_right.png")
+                screen.blit(right_img, (x * 64 - player_offset, y * 64))
             # left
             elif tile == 12:
-                tile_img = pygame.image.load("assets\\grass_left.png")
+                screen.blit(left_img, (x * 64 - player_offset, y * 64))
             # top
             elif tile == 13:
-                tile_img = pygame.image.load("assets\\grass_top.png")
+                screen.blit(top_img, (x * 64 - player_offset, y * 64))
             #bottom
             elif tile == 14:
-                tile_img = pygame.image.load("assets\\grass_bottom.png")
-
+                screen.blit(bottom_img, (x * 64 - player_offset, y * 64))
             # horizontal tube
             elif tile == 15:
-                tile_img = pygame.image.load("assets\\grass_horizontal_tube.png")
+                screen.blit(horizontaltube_img, (x * 64 - player_offset, y * 64))
             # vertical tube
             elif tile == 16:
-                tile_img = pygame.image.load("assets\\grass_vertical_tube.png")
-
-            if tile != 0:
-                screen.blit(tile_img, (x*64-player_offset, y * 64))
+                screen.blit(verticaltube_img, (x * 64 - player_offset, y * 64))
 
     screen.blit(img, (608, player_y))
 
