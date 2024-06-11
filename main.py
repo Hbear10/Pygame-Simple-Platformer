@@ -17,7 +17,6 @@ with open("map.csv", newline="") as csvfile:
     mapreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
     for row in mapreader:
         world_map.append(row[0].split(","))
-print((world_map[0]))
 
 for i in range(len(world_map)):
     for o in range(len(world_map[i])):
@@ -27,9 +26,11 @@ for i in range(len(world_map)):
 
 running = True
 
-player_x = 960
-player_y = 320
+player_x = int(world_map[-1][0])
+player_y = int(world_map[-1][1])
 direction = "r"
+
+print((player_y))
 
 state = "idle"
 
@@ -41,7 +42,7 @@ x_velocity = 0
 y_velocity = 0
 
 max_x_velocity = 10
-max_y_up_velocity = 7
+max_y_up_velocity = 7.5
 max_y_down_velocity = 10
 
 jumpspeed = 0.1
@@ -284,7 +285,7 @@ while running:
         player_y = (player_y // 64) * 64 + 32
 
         # checks if there is anything bellow player to check if you should fall and allows for cyote time
-        if world_map[int((player_y + 97) // 64)][int(player_x // 64)] == 0 and world_map[int((player_y + 97) // 64)][int(player_x // 64 + 1)] == 0:
+        if world_map[int((player_y + 97) // 64)][int((player_x+1) // 64)] == 0 and world_map[int((player_y + 97) // 64)][int((player_x+63) // 64)] == 0:
             if coyote == 0:
                 state = "fall"
             else:
