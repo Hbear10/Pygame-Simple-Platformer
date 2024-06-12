@@ -42,12 +42,12 @@ x_velocity = 0
 y_velocity = 0
 
 max_x_velocity = 10
-max_y_up_velocity = 7.5
+max_y_up_velocity = 10
 max_y_down_velocity = 10
 
-jumpspeed = 0.1
+jumpspeed = 0.25
 gravity_fall = 0.5
-x_acceleration = 0.25
+x_acceleration = 0.5
 start_jump = 0
 
 
@@ -62,6 +62,11 @@ coyote_time = 5
 ##update cyote
 coyote = coyote_time
 
+def restart():
+    global player_x, player_y#
+
+    player_x = int(world_map[-1][0])
+    player_y = int(world_map[-1][1])
 
 def get_sprite():
     global img, left_sprite, right_sprite, idle_sprite
@@ -229,14 +234,16 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             # escape key
-            if event.dict["key"] == 27:
+            if event.key == pygame.K_ESCAPE:
                 running = False
             # space bar
-            if event.dict["key"] == 32:
+            if event.key == pygame.K_SPACE:
                 if state != "jump_up" and state != "fall":
                     state = "jump_up"
                     start_jump = player_y
                     y_velocity = max_y_up_velocity
+            if event.key == pygame.K_RETURN:
+                restart()
 
     key = pygame.key.get_pressed()
     if key[pygame.K_LEFT] and key[pygame.K_RIGHT]:
@@ -301,7 +308,7 @@ while running:
     elif state == "fall":
         # feet collision and gravity
         if world_map[int((player_y + 96) // 64)][int((player_x + 1) // 64)] >= 1 or world_map[int((player_y + 96) // 64)][int((player_x + 63) // 64)] >= 1:
-            print(1)
+            #print(1)
 
             state = "idle"
         else:
@@ -315,7 +322,7 @@ while running:
 
     #print(player_x, "                ", player_y)
     #print(state)
-    print(x_velocity)
+    #print(x_velocity)
 
     clock.tick(FPS)
     #print(pygame.time.Clock.get_fps(clock))
