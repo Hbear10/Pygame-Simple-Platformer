@@ -41,9 +41,9 @@ background_img = pygame.image.load("assets\\background.png").convert()
 x_velocity = 0
 y_velocity = 0
 
-max_x_velocity = 10
+max_x_velocity = 5
 max_y_up_velocity = 10
-max_y_down_velocity = 10
+max_y_down_velocity = 20
 
 jumpspeed = 0.25
 gravity_fall = 0.5
@@ -138,7 +138,7 @@ def get_sprite():
 
 def load_sprites():
     global grass_img, dirt_img,leftcup_img,rightcup_img,bottomcup_img,topcup_img,bottomleftcorner_img,bottomrightcorner_img,topleftcorner_img,toprightcorner_img,right_img,\
-    left_img, top_img,bottom_img,horizontaltube_img,verticaltube_img
+    left_img, top_img,bottom_img,horizontaltube_img,verticaltube_img, flag,spike
     grass_img = pygame.image.load("assets\\grass.png").convert()
     dirt_img = pygame.image.load("assets\\dirt.png").convert()
     leftcup_img = pygame.image.load("assets\\grass_leftcup.png").convert()
@@ -155,6 +155,8 @@ def load_sprites():
     bottom_img = pygame.image.load("assets\\grass_bottom.png").convert()
     horizontaltube_img = pygame.image.load("assets\\grass_horizontal_tube.png").convert()
     verticaltube_img = pygame.image.load("assets\\grass_vertical_tube.png").convert()
+    spike = pygame.image.load("assets\\spike.png").convert_alpha()
+    flag = pygame.image.load("assets\\flag.png").convert_alpha()
 
 
 load_sprites()
@@ -176,6 +178,10 @@ def draw_screen():
     for y in range(15):
         for x in range(22):
             tile = world_map[y][int(player_bit + x)]
+
+            # spike
+            if tile == -1:
+                screen.blit(spike, (x * 64 - player_offset, y * 64))
             # grass
             if tile == 1:
                 screen.blit(grass_img, (x * 64 - player_offset, y * 64))
@@ -224,6 +230,8 @@ def draw_screen():
             # vertical tube
             elif tile == 16:
                 screen.blit(verticaltube_img, (x * 64 - player_offset, y * 64))
+            elif tile == 99:
+                screen.blit(flag, (x * 64 - player_offset, y * 64))
 
     screen.blit(img, (608, player_y))
 
@@ -237,7 +245,7 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
             # space bar
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
                 if state != "jump_up" and state != "fall":
                     state = "jump_up"
                     start_jump = player_y
@@ -283,7 +291,7 @@ while running:
 
             if -0.025 < x_velocity < 0.025:
                 x_velocity = 0
-        if state != "fall" and state != "jump_up" and x_velocity == 0:
+        if state != "fall" and state != "jump_up" and x_velocity <= 0:
             state = "idle"
 
     if state == "idle" or state == "run":
@@ -292,7 +300,7 @@ while running:
         player_y = (player_y // 64) * 64 + 32
 
         # checks if there is anything bellow player to check if you should fall and allows for cyote time
-        if world_map[int((player_y + 97) // 64)][int((player_x+1) // 64)] == 0 and world_map[int((player_y + 97) // 64)][int((player_x+63) // 64)] == 0:
+        if world_map[int((player_y + 97) // 64)][int((player_x+1) // 64)] <= 0 and world_map[int((player_y + 97) // 64)][int((player_x+63) // 64)] <= 0:
             if coyote == 0:
                 state = "fall"
             else:
@@ -327,12 +335,17 @@ while running:
     clock.tick(FPS)
     #print(pygame.time.Clock.get_fps(clock))
 
+    if world_map[int((player_y + 95 - y_velocity) // 64)][int((player_x + 1) // 64)] == -1 and world_map[int((player_y + 95 - y_velocity) // 64)][int((player_x + 63) // 64)] == -1:
+        x_velocity = 0
+        y_velocity = 0
+        restart()
+
     if x_velocity > 0:
         x = player_x + x_velocity + 64
-        if (world_map[int((player_y + 1) // 64)][int(x // 64)] == 0 and world_map[int((player_y + 95) // 64)][int(x // 64)] == 0 and
-        world_map[int((player_y + 48) // 64)][int(x // 64)] == 0):
+        if (world_map[int((player_y + 1) // 64)][int(x // 64)] <= 0 and world_map[int((player_y + 95) // 64)][int(x // 64)] <= 0 and
+        world_map[int((player_y + 48) // 64)][int(x // 64)] <= 0):
             if state == "jump_up" or state == "fall":
-                player_x += x_velocity / 1.5
+                player_x += x_velocity
             else:
                 player_x += x_velocity
         else:
@@ -340,10 +353,10 @@ while running:
             x_velocity = 0
     elif x_velocity < 0:
         x = player_x + x_velocity
-        if (world_map[int((player_y + 1) // 64)][int(x // 64)] == 0 and world_map[int((player_y + 95) // 64)][int(x // 64)] == 0 and
-        world_map[int((player_y + 48) // 64)][int(x // 64)] == 0):
+        if (world_map[int((player_y + 1) // 64)][int(x // 64)] <= 0 and world_map[int((player_y + 95) // 64)][int(x // 64)] <= 0 and
+        world_map[int((player_y + 48) // 64)][int(x // 64)] <= 0):
             if state == "jump_up" or state == "fall":
-                player_x += x_velocity / 1.5
+                player_x += x_velocity
             else:
                 player_x += x_velocity
         else:
@@ -351,18 +364,20 @@ while running:
 
     if y_velocity > 0:
         y = player_y - y_velocity
-        if world_map[int(y // 64)][int((player_x + 1) // 64)] == 0 or world_map[int(y // 64)][int((player_x + 63) // 64)] == 0:
+        if world_map[int(y // 64)][int((player_x + 1) // 64)] <= 0 or world_map[int(y // 64)][int((player_x + 63) // 64)] <= 0:
             player_y -= y_velocity
         else:
             y_velocity = 0
             state = "fall"
     elif y_velocity < 0:
         y = player_y + 96 - y_velocity
-        if world_map[int(y // 64)][int((player_x + 1) // 64)] == 0 or world_map[int(y // 64)][int((player_x + 63) // 64)] == 0:
+        if world_map[int(y // 64)][int((player_x + 1) // 64)] <= 0 or world_map[int(y // 64)][int((player_x + 63) // 64)] <= 0:
             player_y -= y_velocity
         else:
             y_velocity = 0
             state = "idle"
+
+
 
     draw_screen()
     pygame.display.flip()
