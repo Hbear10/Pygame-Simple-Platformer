@@ -1,3 +1,5 @@
+-1 = spike
+
 0 = air
 1 = grass
 2 = dirt
@@ -16,6 +18,8 @@
 12 = grass left -
 13 = grass top -
 14 = grass bottom
+
 15 = grass horizontal tube
 16 = grass vertical tube
+
 99 = flag -

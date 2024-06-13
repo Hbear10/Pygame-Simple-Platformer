@@ -7,6 +7,7 @@ clock = pygame.time.Clock()
 FPS = 60
 
 
+
 pygame.init()
 BGC = (255, 255, 255)
 screen = pygame.display.set_mode((1280, 960))
@@ -29,8 +30,6 @@ running = True
 player_x = int(world_map[-1][0])
 player_y = int(world_map[-1][1])
 direction = "r"
-
-print((player_y))
 
 state = "idle"
 
@@ -62,11 +61,15 @@ coyote_time = 5
 ##update cyote
 coyote = coyote_time
 
+
 def restart():
-    global player_x, player_y#
+    global player_x, player_y
 
     player_x = int(world_map[-1][0])
     player_y = int(world_map[-1][1])
+
+    pygame.mixer.Sound.play(fail, 0)
+
 
 def get_sprite():
     global img, left_sprite, right_sprite, idle_sprite
@@ -136,9 +139,10 @@ def get_sprite():
             img = pygame.image.load("assets\\fall_r.png").convert_alpha()
 
 
-def load_sprites():
+def load_assets():
     global grass_img, dirt_img,leftcup_img,rightcup_img,bottomcup_img,topcup_img,bottomleftcorner_img,bottomrightcorner_img,topleftcorner_img,toprightcorner_img,right_img,\
-    left_img, top_img,bottom_img,horizontaltube_img,verticaltube_img, flag,spike
+    left_img, top_img,bottom_img,horizontaltube_img,verticaltube_img, flag,spike,ost, fail
+
     grass_img = pygame.image.load("assets\\grass.png").convert()
     dirt_img = pygame.image.load("assets\\dirt.png").convert()
     leftcup_img = pygame.image.load("assets\\grass_leftcup.png").convert()
@@ -157,9 +161,11 @@ def load_sprites():
     verticaltube_img = pygame.image.load("assets\\grass_vertical_tube.png").convert()
     spike = pygame.image.load("assets\\spike.png").convert_alpha()
     flag = pygame.image.load("assets\\flag.png").convert_alpha()
+    ost = pygame.mixer.Sound("assets\\Platformy OST.mp3")
+    fail = pygame.mixer.Sound("assets\\fail.mp3")
 
 
-load_sprites()
+load_assets()
 
 
 def draw_screen():
@@ -171,8 +177,6 @@ def draw_screen():
 
     player_offset = player_x % 64 + 32
     player_bit = (player_x//64)-9.5
-
-    tile_img = pygame.image.load("assets\\grass.png").convert()
 
     #tile map
     for y in range(15):
@@ -235,6 +239,8 @@ def draw_screen():
 
     screen.blit(img, (608, player_y))
 
+
+pygame.mixer.Sound.play(ost,1000)
 
 while running:
     for event in pygame.event.get():
