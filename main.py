@@ -173,7 +173,7 @@ def get_sprite():
 
 
 
-def draw_screen():
+def draw_level():
     global player
 
     get_sprite()
@@ -239,7 +239,7 @@ def draw_screen():
             # vertical tube
             elif tile == 16:
                 screen.blit(verticaltube_img, (x * 64 - player_offset, y * 64))
-            elif tile == 99:
+            elif tile == -99:
                 screen.blit(flag, (x * 64 - player_offset, y * 64))
 
     screen.blit(img, (608, player_y))
@@ -284,6 +284,16 @@ def draw_end_screen():
         screen.blit(restart_prompt, restart_prompt_rect)
 
 
+
+def draw_pause_menu():
+    pygame.draw.rect(screen, (0,0,0),(320,0,640,1280))
+
+    Pause_text = pygame.font.Font("PressStart2P.ttf", 96).render("Pause", True, (255, 255, 255))
+    Pause_text_rect = Pause_text.get_rect()
+    Pause_text_rect.center = (640, 256)
+
+    screen.blit(Pause_text,Pause_text_rect)
+
 pygame.mixer.Sound.play(ost,1000)
 
 while running:
@@ -302,9 +312,9 @@ while running:
             if event.type == pygame.KEYDOWN:
                 # escape key
                 if event.key == pygame.K_ESCAPE:
-                    running = False
+                    game_state = "pause"
                 # space bar
-                if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
+                if event.key == pygame.K_SPACE or event.key == pygame.K_UP or event.key == pygame.K_w:
                     if state != "jump_up" and state != "fall":
                         state = "jump_up"
                         start_jump = player_y
@@ -313,12 +323,13 @@ while running:
                     restart()
 
         key = pygame.key.get_pressed()
-        if key[pygame.K_LEFT] and key[pygame.K_RIGHT]:
+        if key[pygame.K_LEFT] and key[pygame.K_RIGHT] or key[pygame.K_a] and key[pygame.K_d]:
+            x_velocity = 0
             if state != "fall" and state != "jump_up":
                 state = "idle"
-                x_velocity = 0
 
-        elif key[pygame.K_LEFT]:
+
+        elif key[pygame.K_LEFT] or key[pygame.K_a]:
             direction = "l"
             if (world_map[int((player_y + 1) // 64)][int(player_x // 64)] >= 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64)] >= 1 or
                     world_map[int((player_y + 48) // 64)][int(player_x // 64)] >= 1):
@@ -330,7 +341,7 @@ while running:
             if state != "fall" and state != "jump_up":
                 state = "run"
 
-        elif key[pygame.K_RIGHT]:
+        elif key[pygame.K_RIGHT] or key[pygame.K_d]:
             direction = "r"
             if (world_map[int((player_y + 1) // 64)][int(player_x // 64 + 1)] >= 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64 + 1)] >= 1 or world_map[int((player_y + 48) // 64)][int(player_x // 64 + 1)] >= 1):
                 x_velocity = 0
@@ -398,7 +409,7 @@ while running:
             restart()
 
         #flag
-        if world_map[int(player_y//64)][int(player_x//64)] == 99 or world_map[int((player_y+96)//64)][int(player_x//64)] == 99 or world_map[int(player_y//64)][int((player_x + 65)//64)] == 99 or world_map[int((player_y+96)//64)][int((player_x+65)//64)] == 99 or world_map[int((player_y+48)//64)][int((player_x-1)//64)] == 99 or world_map[int((player_y+48)//64)][int((player_x + 65)//64)] == 99:
+        if world_map[int(player_y//64)][int(player_x//64)] == -99 or world_map[int((player_y+96)//64)][int(player_x//64)] == -99 or world_map[int(player_y//64)][int((player_x + 65)//64)] == -99 or world_map[int((player_y+96)//64)][int((player_x+65)//64)] == -99 or world_map[int((player_y+48)//64)][int((player_x-1)//64)] == -99 or world_map[int((player_y+48)//64)][int((player_x + 65)//64)] == -99:
             game_state = "end"
             pygame.time.set_timer(pygame.USEREVENT, 500)
 
@@ -439,7 +450,17 @@ while running:
                 y_velocity = 0
                 state = "idle"
 
-        draw_screen()
+        draw_level()
+
+    elif game_state == "pause":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                # escape key
+                if event.key == pygame.K_ESCAPE:
+                    game_state = "level"
+            draw_pause_menu()
 
     elif game_state == "end":
         for event in pygame.event.get():
