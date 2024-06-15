@@ -15,7 +15,7 @@ screen = pygame.display.set_mode((1280, 960))
 
 world_map = []
 
-with open("map.csv", newline="") as csvfile:
+with open("level2.csv", newline="") as csvfile:
     mapreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
     for row in mapreader:
         world_map.append(row[0].split(","))
@@ -87,18 +87,24 @@ coyote = coyote_time
 
 
 def restart():
-    global player_x, player_y
+    global player_x, player_y,x_velocity,y_velocity
 
     player_x = int(world_map[-1][0])
     player_y = int(world_map[-1][1])
 
+    x_velocity = 0
+    y_velocity = 0
+    
     pygame.mixer.Sound.play(fail, 0)
 
 def level_reset():
-    global player_x, player_y, game_state
+    global player_x, player_y, game_state,x_velocity,y_velocity
 
     player_x = int(world_map[-1][0])
     player_y = int(world_map[-1][1])
+
+    x_velocity = 0
+    y_velocity = 0
 
     game_state = "level"
 
