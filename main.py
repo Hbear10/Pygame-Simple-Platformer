@@ -4,7 +4,7 @@ import sys
 import pygame
 
 clock = pygame.time.Clock()
-#set game FPS
+# set game FPS
 FPS = 60
 
 end_count = 0
@@ -13,17 +13,24 @@ pygame.init()
 BGC = (255, 255, 255)
 screen = pygame.display.set_mode((1280, 960))
 
-world_map = []
 
-with open("level1.csv", newline="") as csvfile:
-    mapreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-    for row in mapreader:
-        world_map.append(row[0].split(","))
+def file_load(file_name):
+    file_scan = []
+    with open(f"{file_name}.csv", newline="") as csvfile:
+        mapreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+        for row in mapreader:
+            file_scan.append(row[0].split(","))
 
-for i in range(len(world_map)):
-    for o in range(len(world_map[i])):
-        if world_map[i][o] != "x":
-            world_map[i][o] = int(world_map[i][o])
+    for i in range(len(file_scan)):
+        for o in range(len(file_scan[i])):
+            file_scan[i][o] = int(file_scan[i][o])
+
+    return file_scan
+
+
+levels = [file_load("level1"), file_load("level2")]
+
+world_map = levels[0]
 
 running = True
 
@@ -70,34 +77,22 @@ gravity_fall = 0.5
 x_acceleration = 0.5
 start_jump = 0
 
-
 # sprite stages
 idle_sprite = 1
 left_sprite = 1
 right_sprite = 1
 
-#start screen
+# start screen
 title_y = 0
 
-#length of cyote(frames)
+# length of cyote(frames)
 coyote_time = 5
 ##update cyote
 coyote = coyote_time
 
 
-def restart():
-    global player_x, player_y,x_velocity,y_velocity
-
-    player_x = int(world_map[-1][0])
-    player_y = int(world_map[-1][1])
-
-    x_velocity = 0
-    y_velocity = 0
-
-    pygame.mixer.Sound.play(fail, 0)
-
 def level_reset():
-    global player_x, player_y, game_state,x_velocity,y_velocity
+    global player_x, player_y, game_state, x_velocity, y_velocity
 
     player_x = int(world_map[-1][0])
     player_y = int(world_map[-1][1])
@@ -107,6 +102,11 @@ def level_reset():
 
     game_state = "level"
 
+
+def restart():
+    level_reset()
+
+    pygame.mixer.Sound.play(fail, 0)
 
 
 def get_sprite():
@@ -177,24 +177,23 @@ def get_sprite():
             img = pygame.image.load("assets\\fall_r.png").convert_alpha()
 
 
-
 def draw_level():
     global player
 
     get_sprite()
-    #screen.fill(BGC)
-    screen.blit(background_img, (0,0))
+    # screen.fill(BGC)
+    screen.blit(background_img, (0, 0))
 
     player_offset = player_x % 64 + 32
-    player_bit = (player_x//64)-9.5
+    player_bit = (player_x // 64) - 9.5
 
-    #tile map
+    # tile map
     for y in range(15):
         for x in range(22):
             if player_x < 608:
                 tile = world_map[y][x]
                 player_offset = 0
-            elif player_x > len(world_map[0])*64 - 736:
+            elif player_x > len(world_map[0]) * 64 - 736:
                 player_offset = 0
                 if x > 19:
                     continue
@@ -210,10 +209,10 @@ def draw_level():
             # dirt
             elif tile == 2:
                 screen.blit(dirt_img, (x * 64 - player_offset, y * 64))
-            #right side missing/left cup
+            # right side missing/left cup
             elif tile == 3:
                 screen.blit(leftcup_img, (x * 64 - player_offset, y * 64))
-            #left side missing/right cup
+            # left side missing/right cup
             elif tile == 4:
                 screen.blit(rightcup_img, (x * 64 - player_offset, y * 64))
             # top side missing/bottom cup
@@ -222,16 +221,16 @@ def draw_level():
             # bottom side missing/top cup
             elif tile == 6:
                 screen.blit(topcup_img, (x * 64 - player_offset, y * 64))
-            #bottom left corner
+            # bottom left corner
             elif tile == 7:
                 screen.blit(bottomleftcorner_img, (x * 64 - player_offset, y * 64))
-            #bottom right corner
+            # bottom right corner
             elif tile == 8:
                 screen.blit(bottomrightcorner_img, (x * 64 - player_offset, y * 64))
-            #top left corner
+            # top left corner
             elif tile == 9:
                 screen.blit(topleftcorner_img, (x * 64 - player_offset, y * 64))
-            #top right corner
+            # top right corner
             elif tile == 10:
                 screen.blit(toprightcorner_img, (x * 64 - player_offset, y * 64))
             # right
@@ -243,7 +242,7 @@ def draw_level():
             # top
             elif tile == 13:
                 screen.blit(top_img, (x * 64 - player_offset, y * 64))
-            #bottom
+            # bottom
             elif tile == 14:
                 screen.blit(bottom_img, (x * 64 - player_offset, y * 64))
             # horizontal tube
@@ -257,8 +256,8 @@ def draw_level():
 
     if player_x < 608:
         screen.blit(img, (player_x, player_y))
-    elif player_x > len(world_map[0])*64 - 736:
-        screen.blit(img, ((1346-(len(world_map[0])*64-player_x)), player_y))
+    elif player_x > len(world_map[0]) * 64 - 736:
+        screen.blit(img, ((1346 - (len(world_map[0]) * 64 - player_x)), player_y))
     else:
         screen.blit(img, (608, player_y))
 
@@ -268,9 +267,9 @@ def draw_start_menu():
 
     screen.fill((144, 255, 189))
 
-    title = pygame.font.Font("PressStart2P.ttf", 96).render("Platformy", True, (0,0,0))
+    title = pygame.font.Font("PressStart2P.ttf", 96).render("Platformy", True, (0, 0, 0))
     title_rect = title.get_rect()
-    title_rect.center = (640,title_y)
+    title_rect.center = (640, title_y)
 
     start_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("Press any key to start", True, (0, 0, 0))
     start_prompt_text_rect = start_prompt_text.get_rect()
@@ -292,7 +291,8 @@ def draw_end_screen():
     victory_rect = victory.get_rect()
     victory_rect.center = (640, 256)
 
-    restart_prompt = pygame.font.Font("PressStart2P.ttf", 32).render("Press any key to have another go", True, (68, 142, 255))
+    restart_prompt = pygame.font.Font("PressStart2P.ttf", 32).render("Press any key to have another go", True,
+                                                                     (68, 142, 255))
     restart_prompt_rect = restart_prompt.get_rect()
     restart_prompt_rect.center = (640, 640)
 
@@ -302,17 +302,17 @@ def draw_end_screen():
         screen.blit(restart_prompt, restart_prompt_rect)
 
 
-
 def draw_pause_menu():
-    pygame.draw.rect(screen, (0,0,0),(320,0,640,1280))
+    pygame.draw.rect(screen, (0, 0, 0), (320, 0, 640, 1280))
 
     Pause_text = pygame.font.Font("PressStart2P.ttf", 96).render("Pause", True, (255, 255, 255))
     Pause_text_rect = Pause_text.get_rect()
     Pause_text_rect.center = (640, 256)
 
-    screen.blit(Pause_text,Pause_text_rect)
+    screen.blit(Pause_text, Pause_text_rect)
 
-pygame.mixer.Sound.play(ost,1000)
+
+pygame.mixer.Sound.play(ost, 1000)
 
 while running:
     if game_state == "start":
@@ -346,10 +346,10 @@ while running:
             if state != "fall" and state != "jump_up":
                 state = "idle"
 
-
         elif key[pygame.K_LEFT] or key[pygame.K_a]:
             direction = "l"
-            if (world_map[int((player_y + 1) // 64)][int(player_x // 64)] >= 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64)] >= 1 or
+            if (world_map[int((player_y + 1) // 64)][int(player_x // 64)] >= 1 or world_map[int((player_y + 95) // 64)][
+                int(player_x // 64)] >= 1 or
                     world_map[int((player_y + 48) // 64)][int(player_x // 64)] >= 1):
                 x_velocity = 0
             else:
@@ -361,7 +361,9 @@ while running:
 
         elif key[pygame.K_RIGHT] or key[pygame.K_d]:
             direction = "r"
-            if (world_map[int((player_y + 1) // 64)][int(player_x // 64 + 1)] >= 1 or world_map[int((player_y + 95) // 64)][int(player_x // 64 + 1)] >= 1 or world_map[int((player_y + 48) // 64)][int(player_x // 64 + 1)] >= 1):
+            if world_map[int((player_y + 1) // 64)][int(player_x // 64 + 1)] >= 1 or \
+                    world_map[int((player_y + 95) // 64)][int(player_x // 64 + 1)] >= 1 or \
+                    world_map[int((player_y + 48) // 64)][int(player_x // 64 + 1)] >= 1:
                 x_velocity = 0
             else:
                 if x_velocity < max_x_velocity:
@@ -388,7 +390,8 @@ while running:
             player_y = (player_y // 64) * 64 + 32
 
             # checks if there is anything bellow player to check if you should fall and allows for cyote time
-            if world_map[int((player_y + 97) // 64)][int((player_x+1) // 64)] <= 0 and world_map[int((player_y + 97) // 64)][int((player_x+63) // 64)] <= 0:
+            if world_map[int((player_y + 97) // 64)][int((player_x + 1) // 64)] <= 0 and \
+                    world_map[int((player_y + 97) // 64)][int((player_x + 63) // 64)] <= 0:
                 if coyote == 0:
                     state = "fall"
                 else:
@@ -403,48 +406,64 @@ while running:
                 y_velocity -= jumpspeed
         elif state == "fall":
             # feet collision and gravity
-            if world_map[int((player_y + 96) // 64)][int((player_x + 1) // 64)] >= 1 or world_map[int((player_y + 96) // 64)][int((player_x + 63) // 64)] >= 1:
+            if world_map[int((player_y + 96) // 64)][int((player_x + 1) // 64)] >= 1 or \
+                    world_map[int((player_y + 96) // 64)][int((player_x + 63) // 64)] >= 1:
 
                 state = "idle"
             else:
                 if y_velocity < max_y_down_velocity:
                     y_velocity -= gravity_fall
 
-        #collisions()
+        # collisions()
 
         player_y = round(player_y, 2)
         player_x = round(player_x, 2)
 
-        #print(player_x, "                ", player_y)
-        #print(state)
-        #print(x_velocity)
+        # print(player_x, "                ", player_y)
+        # print(state)
+        # print(x_velocity)
 
-        #fail
-        if world_map[int((player_y + 95 - y_velocity) // 64)][int((player_x + 1) // 64)] == -1 and world_map[int((player_y + 95 - y_velocity) // 64)][int((player_x + 63) // 64)] == -1:
+        # fail
+        if world_map[int((player_y + 95 - y_velocity) // 64)][int((player_x + 1) // 64)] == -1 and \
+                world_map[int((player_y + 95 - y_velocity) // 64)][int((player_x + 63) // 64)] == -1:
             x_velocity = 0
             y_velocity = 0
             restart()
 
-        #flag
-        if world_map[int(player_y//64)][int(player_x//64)] == -99 or world_map[int((player_y+96)//64)][int(player_x//64)] == -99 or world_map[int(player_y//64)][int((player_x + 65)//64)] == -99 or world_map[int((player_y+96)//64)][int((player_x+65)//64)] == -99 or world_map[int((player_y+48)//64)][int((player_x-1)//64)] == -99 or world_map[int((player_y+48)//64)][int((player_x + 65)//64)] == -99:
-            game_state = "end"
-            pygame.time.set_timer(pygame.USEREVENT, 500)
+        # flag
+        if world_map[int(player_y // 64)][int(player_x // 64)] == -99 or world_map[int((player_y + 96) // 64)][
+            int(player_x // 64)] == -99 or world_map[int(player_y // 64)][int((player_x + 65) // 64)] == -99 or \
+                world_map[int((player_y + 96) // 64)][int((player_x + 65) // 64)] == -99 or \
+                world_map[int((player_y + 48) // 64)][int((player_x - 1) // 64)] == -99 or \
+                world_map[int((player_y + 48) // 64)][int((player_x + 65) // 64)] == -99:
+            if world_map == levels[-1]:
+                game_state = "end"
+                pygame.time.set_timer(pygame.USEREVENT, 500)
+            else:
+                if world_map == levels[0]:
+                    world_map = levels[1]
+                    level_reset()
+                elif world_map == levels[1]:
+                    world_map = levels[2]
+                    level_reset()
 
         if x_velocity > 0:
             x = player_x + x_velocity + 64
-            if (world_map[int((player_y + 1) // 64)][int(x // 64)] <= 0 and world_map[int((player_y + 95) // 64)][int(x // 64)] <= 0 and
-            world_map[int((player_y + 48) // 64)][int(x // 64)] <= 0):
+            if (world_map[int((player_y + 1) // 64)][int(x // 64)] <= 0 and world_map[int((player_y + 95) // 64)][
+                int(x // 64)] <= 0 and
+                    world_map[int((player_y + 48) // 64)][int(x // 64)] <= 0):
                 if state == "jump_up" or state == "fall":
                     player_x += x_velocity
                 else:
                     player_x += x_velocity
             else:
-                #player_x = player_x//64 * 64
+                # player_x = player_x//64 * 64
                 x_velocity = 0
         elif x_velocity < 0:
             x = player_x + x_velocity
-            if (world_map[int((player_y + 1) // 64)][int(x // 64)] <= 0 and world_map[int((player_y + 95) // 64)][int(x // 64)] <= 0 and
-            world_map[int((player_y + 48) // 64)][int(x // 64)] <= 0):
+            if (world_map[int((player_y + 1) // 64)][int(x // 64)] <= 0 and world_map[int((player_y + 95) // 64)][
+                int(x // 64)] <= 0 and
+                    world_map[int((player_y + 48) // 64)][int(x // 64)] <= 0):
                 if state == "jump_up" or state == "fall":
                     player_x += x_velocity
                 else:
@@ -487,13 +506,13 @@ while running:
                 running = False
             if event.type == pygame.KEYDOWN:
                 if end_count > 3:
+                    world_map = levels[0]
                     level_reset()
 
             draw_end_screen()
 
-
     clock.tick(FPS)
-    print(pygame.time.Clock.get_fps(clock))
+    # print(pygame.time.Clock.get_fps(clock))
 
     pygame.display.flip()
 
