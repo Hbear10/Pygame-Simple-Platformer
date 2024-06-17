@@ -15,7 +15,7 @@ screen = pygame.display.set_mode((1280, 960))
 
 world_map = []
 
-with open("level2.csv", newline="") as csvfile:
+with open("level1.csv", newline="") as csvfile:
     mapreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
     for row in mapreader:
         world_map.append(row[0].split(","))
@@ -24,7 +24,6 @@ for i in range(len(world_map)):
     for o in range(len(world_map[i])):
         if world_map[i][o] != "x":
             world_map[i][o] = int(world_map[i][o])
-
 
 running = True
 
@@ -94,7 +93,7 @@ def restart():
 
     x_velocity = 0
     y_velocity = 0
-    
+
     pygame.mixer.Sound.play(fail, 0)
 
 def level_reset():
@@ -192,8 +191,16 @@ def draw_level():
     #tile map
     for y in range(15):
         for x in range(22):
-            tile = world_map[y][int(player_bit + x)]
-
+            if player_x < 608:
+                tile = world_map[y][x]
+                player_offset = 0
+            elif player_x > len(world_map[0])*64 - 736:
+                player_offset = 0
+                if x > 19:
+                    continue
+                tile = world_map[y][int(x + (len(world_map[0]) - 21))]
+            else:
+                tile = world_map[y][int(player_bit + x)]
             # spike
             if tile == -1:
                 screen.blit(spike, (x * 64 - player_offset, y * 64))
@@ -248,7 +255,12 @@ def draw_level():
             elif tile == -99:
                 screen.blit(flag, (x * 64 - player_offset, y * 64))
 
-    screen.blit(img, (608, player_y))
+    if player_x < 608:
+        screen.blit(img, (player_x, player_y))
+    elif player_x > len(world_map[0])*64 - 736:
+        screen.blit(img, ((1346-(len(world_map[0])*64-player_x)), player_y))
+    else:
+        screen.blit(img, (608, player_y))
 
 
 def draw_start_menu():
@@ -392,7 +404,6 @@ while running:
         elif state == "fall":
             # feet collision and gravity
             if world_map[int((player_y + 96) // 64)][int((player_x + 1) // 64)] >= 1 or world_map[int((player_y + 96) // 64)][int((player_x + 63) // 64)] >= 1:
-                #print(1)
 
                 state = "idle"
             else:
@@ -482,7 +493,7 @@ while running:
 
 
     clock.tick(FPS)
-    # print(pygame.time.Clock.get_fps(clock))
+    print(pygame.time.Clock.get_fps(clock))
 
     pygame.display.flip()
 
