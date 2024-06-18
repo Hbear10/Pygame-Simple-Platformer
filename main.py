@@ -61,6 +61,7 @@ horizontaltube_img = pygame.image.load("assets\\grass_horizontal_tube.png").conv
 verticaltube_img = pygame.image.load("assets\\grass_vertical_tube.png").convert()
 spike = pygame.image.load("assets\\spike.png").convert_alpha()
 flag = pygame.image.load("assets\\flag.png").convert_alpha()
+spring = pygame.image.load("assets\\spring.png").convert_alpha()
 
 ost = pygame.mixer.Sound("assets\\Platformy OST.mp3")
 fail = pygame.mixer.Sound("assets\\fail.mp3")
@@ -177,7 +178,7 @@ def get_sprite():
             img = pygame.image.load("assets\\fall_r.png").convert_alpha()
 
 
-def draw_level():
+def draw_level(world_map):
     global player
 
     get_sprite()
@@ -251,6 +252,11 @@ def draw_level():
             # vertical tube
             elif tile == 16:
                 screen.blit(verticaltube_img, (x * 64 - player_offset, y * 64))
+            #spring
+            elif tile == 99:
+                screen.blit(spring, (x * 64 - player_offset, y * 64))
+
+            #flag
             elif tile == -99:
                 screen.blit(flag, (x * 64 - player_offset, y * 64))
 
@@ -424,11 +430,24 @@ while running:
         # print(x_velocity)
 
         # fail
-        if world_map[int((player_y + 95 - y_velocity) // 64)][int((player_x + 1) // 64)] == -1 and \
-                world_map[int((player_y + 95 - y_velocity) // 64)][int((player_x + 63) // 64)] == -1:
-            x_velocity = 0
-            y_velocity = 0
-            restart()
+        if y_velocity < 0:
+            if world_map[int((player_y + 95 + y_velocity) // 64)][int((player_x + 1) // 64)] == -1 or \
+                    world_map[int((player_y + 95 + y_velocity) // 64)][int((player_x + 63) // 64)] == -1:
+                x_velocity = 0
+                y_velocity = 0
+                restart()
+        else:
+            if world_map[int((player_y + 95) // 64)][int((player_x + 1) // 64)] == -1 or \
+                    world_map[int((player_y + 95) // 64)][int((player_x + 63) // 64)] == -1:
+                x_velocity = 0
+                y_velocity = 0
+                restart()
+
+        #spring
+        if world_map[int((player_y + 97) // 64)][int((player_x + 1) // 64)] == 99 or \
+                world_map[int((player_y + 97) // 64)][int((player_x + 63) // 64)] == 99:
+            state = "jump_up"
+            y_velocity = (max_y_up_velocity * 1.5)
 
         # flag
         if world_map[int(player_y // 64)][int(player_x // 64)] == -99 or world_map[int((player_y + 96) // 64)][
@@ -486,7 +505,7 @@ while running:
                 y_velocity = 0
                 state = "idle"
 
-        draw_level()
+        draw_level(world_map)
 
     elif game_state == "pause":
         for event in pygame.event.get():
