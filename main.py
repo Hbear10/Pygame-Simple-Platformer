@@ -2,6 +2,7 @@ import csv
 import sys
 
 import pygame
+import spritesheet
 
 clock = pygame.time.Clock()
 # set game FPS
@@ -63,6 +64,12 @@ spike = pygame.image.load("assets\\spike.png").convert_alpha()
 flag = pygame.image.load("assets\\flag.png").convert_alpha()
 spring = pygame.image.load("assets\\spring.png").convert_alpha()
 
+croc_spritesheet_l = spritesheet.SpriteSheet("assets\\crocs_spritesheet_l.png")
+croc_spritesheet_l = croc_spritesheet_l.images_at(((0,0,64,96),(64,0,64,96),(128,0,64,96),(192,0,64,96),(256,0,64,96),(320,0,64,96),(384,0,64,96),(448,0,64,96),(512,0,64,96),(576,0,64,96),(640,0,64,96),(704,0,64,96),(768,0,64,96)), colorkey=(0,0,0))
+
+croc_spritesheet_r = spritesheet.SpriteSheet("assets\\crocs_spritesheet_r.png")
+croc_spritesheet_r = croc_spritesheet_r.images_at(((0,0,64,96),(64,0,64,96),(128,0,64,96),(192,0,64,96),(256,0,64,96),(320,0,64,96),(384,0,64,96),(448,0,64,96),(512,0,64,96),(576,0,64,96),(640,0,64,96),(704,0,64,96),(768,0,64,96)), colorkey=(0,0,0))
+
 ost = pygame.mixer.Sound("assets\\Platformy OST.mp3")
 fail = pygame.mixer.Sound("assets\\fail.mp3")
 
@@ -91,9 +98,17 @@ coyote_time = 5
 ##update cyote
 coyote = coyote_time
 
+#follower
+start_moving = False
+past_coord = []
+croc_num = 0
+
 
 def level_reset():
-    global player_x, player_y, game_state, x_velocity, y_velocity
+    global player_x, player_y, game_state, x_velocity, y_velocity, start_moving, past_coord
+
+    start_moving = False
+    past_coord = []
 
     player_x = int(world_map[-1][0])
     player_y = int(world_map[-1][1])
@@ -179,7 +194,7 @@ def get_sprite():
 
 
 def draw_level(world_map):
-    global player
+    global player,past_coord, croc_num
 
     get_sprite()
     # screen.fill(BGC)
@@ -267,6 +282,25 @@ def draw_level(world_map):
     else:
         screen.blit(img, (608, player_y))
 
+    if len(past_coord) > 60:
+        croc_num += 1
+
+        if past_coord[0][2] == "r":
+            croc = croc_spritesheet_r[croc_num//6]
+        else:
+            croc = croc_spritesheet_l[croc_num // 6]
+        if croc_num == 66:
+            croc_num = 0
+
+        if player_x < 608:
+            screen.blit(croc, (past_coord[0][0],past_coord[0][1]))
+        elif player_x > len(world_map[0]) * 64 - 736:
+            screen.blit(croc, (1346 - (len(world_map[0]) * 64 - past_coord[0][0]), past_coord[0][1]))
+        else:
+            screen.blit(croc, (608-(player_x-past_coord[0][0]),past_coord[0][1]))
+
+        past_coord.pop(0)
+
 
 def draw_start_menu():
     global title_y
@@ -318,6 +352,13 @@ def draw_pause_menu():
     screen.blit(Pause_text, Pause_text_rect)
 
 
+def check_croc_collision():
+    if max(player_x,past_coord[0][0]) - min(player_x+64, past_coord[0][0]+64) + 1 < 0 and max(player_y,past_coord[0][1]) - min(player_y+96, past_coord[0][1]+96) + 1 < 0:
+        restart()
+    else:
+        pass
+
+
 pygame.mixer.Sound.play(ost, 1000)
 
 while running:
@@ -330,10 +371,14 @@ while running:
         draw_start_menu()
 
     elif game_state == "level":
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
+                if not start_moving:
+                    start_moving = True
+
                 # escape key
                 if event.key == pygame.K_ESCAPE:
                     game_state = "pause"
@@ -420,8 +465,6 @@ while running:
                 if y_velocity < max_y_down_velocity:
                     y_velocity -= gravity_fall
 
-        # collisions()
-
         player_y = round(player_y, 2)
         player_x = round(player_x, 2)
 
@@ -442,6 +485,12 @@ while running:
                 x_velocity = 0
                 y_velocity = 0
                 restart()
+
+        if not start_moving and state != "idle":
+            start_moving = True
+
+        if len(past_coord) == 60:
+            check_croc_collision()
 
         #spring
         if world_map[int((player_y + 97) // 64)][int((player_x + 1) // 64)] == 99 or \
@@ -504,6 +553,9 @@ while running:
             else:
                 y_velocity = 0
                 state = "idle"
+
+        if start_moving:
+            past_coord.append((player_x,player_y,direction))
 
         draw_level(world_map)
 
