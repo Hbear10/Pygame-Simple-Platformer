@@ -1,8 +1,19 @@
 import csv
 import sys
-
+import os
 import pygame
 import spritesheet
+
+
+# def resource_path(relative_path):
+#     try:
+#     # PyInstaller creates a temp folder and stores path in _MEIPASS
+#         base_path = sys._MEIPASS
+#     except Exception:
+#         base_path = os.path.abspath(".")
+#
+#     return os.path.join(base_path, relative_path)
+
 
 clock = pygame.time.Clock()
 # set game FPS
@@ -11,13 +22,12 @@ FPS = 60
 end_count = 0
 
 pygame.init()
-BGC = (255, 255, 255)
 screen = pygame.display.set_mode((1280, 960))
 
 
 def file_load(file_name):
     file_scan = []
-    with open(f"{file_name}.csv", newline="") as csvfile:
+    with open(f"Levels\\{file_name}.csv", newline="") as csvfile:
         mapreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
         for row in mapreader:
             file_scan.append(row[0].split(","))
@@ -92,16 +102,47 @@ right_sprite = 1
 
 # start screen
 title_y = 0
+start_option_selected = 0
+
+#for controls and options menu
+screen_to_return_to = "start"
+
+#settings
+option_selected = 0
+difficulty_val = 2
+difficulty_stages = ["Baby","Easy","Normal"]
+music_val = 0
+music_stages = ["on","off"]
+sfx_val = 0
+sfx_stages = ["on","off"]
+timer_val = 1
+timer_stages = ["on","off"]
+screen_size_val = 1
+screen_size_stages = ["small","large"]
 
 # length of cyote(frames)
 coyote_time = 5
 ##update cyote
 coyote = coyote_time
 
+#music
+playing_music = False
+play_music = pygame.USEREVENT + 1
+chanel = pygame.mixer.Channel(0)
+
 #follower
 start_moving = False
 past_coord = []
 croc_num = 0
+
+croc_time = 61
+
+
+def show_text(text, font_size, colour, centre_coords):
+    txt = pygame.font.Font("PressStart2P.ttf", font_size).render(text, True, colour)
+    txt_rect = txt.get_rect()
+    txt_rect.center = centre_coords
+    screen.blit(txt, txt_rect)
 
 
 def level_reset():
@@ -197,7 +238,6 @@ def draw_level(world_map):
     global player,past_coord, croc_num
 
     get_sprite()
-    # screen.fill(BGC)
     screen.blit(background_img, (0, 0))
 
     player_offset = player_x % 64 + 32
@@ -282,7 +322,7 @@ def draw_level(world_map):
     else:
         screen.blit(img, (608, player_y))
 
-    if len(past_coord) > 60:
+    if len(past_coord) > croc_time:
         croc_num += 1
 
         if past_coord[0][2] == "r":
@@ -302,26 +342,68 @@ def draw_level(world_map):
         past_coord.pop(0)
 
 
+def refresh_settings():
+    global croc_time
+
+    if difficulty_val == 0:
+        croc_time = 10000000000
+    elif difficulty_val == 1:
+        croc_time = 120
+    else:
+        croc_time = 61
+
 def draw_start_menu():
     global title_y
 
     screen.fill((144, 255, 189))
 
-    title = pygame.font.Font("PressStart2P.ttf", 96).render("Platformy", True, (0, 0, 0))
-    title_rect = title.get_rect()
-    title_rect.center = (640, title_y)
+    show_text("PLATFORMY",96,(255, 189, 144),(640, title_y))
 
-    start_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("Press any key to start", True, (0, 0, 0))
-    start_prompt_text_rect = start_prompt_text.get_rect()
-    start_prompt_text_rect.center = (640, 520)
+    if start_option_selected == 0:
+        play_prompt_colour = (255, 189, 144)
+    else:
+        play_prompt_colour = (0,0,0)
+    play_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("PLAY", True, play_prompt_colour)
+    play_prompt_text_rect = play_prompt_text.get_rect()
+    play_prompt_text_rect.center = (640, 360)
 
-    if title_y != 256:
+    if start_option_selected == 1:
+        controls_prompt_colour = (255, 189, 144)
+    else:
+        controls_prompt_colour = (0,0,0)
+    controls_menu_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("CONTROLS", True, controls_prompt_colour)
+    controls_menu_prompt_rect = controls_menu_prompt_text.get_rect()
+    controls_menu_prompt_rect.center = (640, 460)
+
+    if start_option_selected == 2:
+        options_prompt_colour = (255, 189, 144)
+    else:
+        options_prompt_colour = (0,0,0)
+    options_menu_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("OPTIONS", True, options_prompt_colour)
+    options_menu_prompt_rect = options_menu_prompt_text.get_rect()
+    options_menu_prompt_rect.center = (640, 560)
+
+    if start_option_selected == 3:
+        quit_prompt_colour = (255, 189, 144)
+    else:
+        quit_prompt_colour = (0,0,0)
+    quit_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("QUIT", True, quit_prompt_colour)
+    quit_prompt_rect = quit_prompt_text.get_rect()
+    quit_prompt_rect.center = (640, 660)
+
+    if title_y != 128:
         title_y += 2
 
-    if title_y == 256:
-        screen.blit(start_prompt_text, start_prompt_text_rect)
+    if title_y == 128:
+        screen.blit(play_prompt_text, play_prompt_text_rect)
+        screen.blit(controls_menu_prompt_text, controls_menu_prompt_rect)
+        screen.blit(options_menu_prompt_text, options_menu_prompt_rect)
+        screen.blit(quit_prompt_text,quit_prompt_rect)
 
-    screen.blit(title, title_rect)
+        pygame.draw.circle(screen, (255, 189, 144), (400, 360 + 100 * start_option_selected), 16)
+        pygame.draw.circle(screen, (255, 189, 144), (880, 360 + 100 * start_option_selected), 16)
+        pygame.draw.polygon(screen, (255, 189, 144),[[375,360 + 100 * start_option_selected],[330,330 + 100 * start_option_selected],[330,390 + 100 * start_option_selected]])
+        pygame.draw.polygon(screen, (255, 189, 144),[[905, 360 + 100 * start_option_selected], [960, 330 + 100 * start_option_selected],[960, 390 + 100 * start_option_selected]])
 
 
 def draw_end_screen():
@@ -352,6 +434,128 @@ def draw_pause_menu():
     screen.blit(Pause_text, Pause_text_rect)
 
 
+def draw_controls_menu():
+    screen.fill((144, 255, 189))
+
+    show_text("CONTROLS", 72, (255, 189, 144), (640, 80))
+
+    show_text("Move left and right",32,(255, 189, 144),(960,220))
+
+    pygame.draw.rect(screen, (189, 195, 199), (50, 190, 55, 55))
+    show_text("A",48,(0,0,0),(80,220))
+
+    pygame.draw.rect(screen, (189, 195, 199), (150, 190, 55, 55))
+    show_text("D", 48, (0, 0, 0), (180, 220))
+
+    show_text("or", 32, (0, 0, 0), (320, 220))
+
+    pygame.draw.rect(screen, (189, 195, 199), (430, 190, 55, 55))
+    show_text("←", 48, (0, 0, 0), (460, 220))
+
+    pygame.draw.rect(screen, (189, 195, 199), (530, 190, 55, 55))
+    show_text("→", 48, (0, 0, 0), (560, 220))
+
+    #jump controls
+    show_text("Jump",32,(255,189,144),(960,320))
+
+    pygame.draw.rect(screen, (189, 195, 199), (50, 290, 55, 55))
+    show_text("W",48,(0,0,0),(80,320))
+
+    show_text("or", 32, (0, 0, 0), (200, 320))
+
+    pygame.draw.rect(screen, (189, 195, 199), (290, 290, 55, 55))
+    show_text("↑", 48, (0, 0, 0), (320, 320))
+
+    show_text("or", 40, (0, 0, 0), (440, 320))
+
+    pygame.draw.rect(screen, (189, 195, 199), (520, 290, 240, 55))
+    show_text("SPACE",48,(0,0,0),(640,320))
+
+    #Pause or leave menus
+    show_text("Pause game or leave menus", 32, (255, 189, 144), (840, 420))
+
+    pygame.draw.rect(screen, (189, 195, 199), (240, 390, 150, 55))
+    show_text("ESC", 48, (0, 0, 0), (320, 420))
+
+    #restart level
+    show_text("restart a level", 32, (255, 189, 144), (960, 520))
+
+    pygame.draw.rect(screen, (189, 195, 199), (190, 490, 250, 55))
+    show_text("ENTER", 48, (0, 0, 0), (320, 520))
+
+    #menu navigation
+    show_text("move around menus", 32, (255, 189, 144), (960, 620))
+
+    pygame.draw.rect(screen, (189, 195, 199), (150, 570, 55, 55))
+    show_text("W", 48, (0, 0, 0), (180, 600))
+    pygame.draw.rect(screen, (189, 195, 199), (150, 640, 55, 55))
+    show_text("S", 48, (0, 0, 0), (180, 670))
+
+    show_text("or", 40, (0, 0, 0), (320, 620))
+
+    pygame.draw.rect(screen, (189, 195, 199), (430, 570, 55, 55))
+    show_text("↑", 48, (0, 0, 0), (460, 600))
+    pygame.draw.rect(screen, (189, 195, 199), (430, 640, 55, 55))
+    show_text("↓", 48, (0, 0, 0), (460, 670))
+
+    #select in menus
+    show_text("Select in menus", 32, (255, 189, 144), (960, 750))
+    pygame.draw.rect(screen, (189, 195, 199), (40, 720, 240, 55))
+    show_text("SPACE", 48, (0, 0, 0), (160, 750))
+    show_text("or", 40, (0, 0, 0), (360, 750))
+    pygame.draw.rect(screen, (189, 195, 199), (430, 720, 250, 55))
+    show_text("ENTER", 48, (0, 0, 0), (560, 750))
+
+    #press escape to go back or something
+    show_text("← ESC", 48, (255, 189, 144), (140, 920))
+
+
+def draw_options_menu():
+    screen.fill((144, 255, 189))
+
+    show_text("OPTIONS", 72, (255, 189, 144), (640, 80))
+
+    if option_selected == 0:
+        difficulty_colour = (255, 189, 144)
+    else:
+        difficulty_colour = (0,0,0)
+    show_text("Difficulty level", 32, difficulty_colour, (360, 200))
+    show_text(difficulty_stages[difficulty_val], 32, difficulty_colour, (960, 200))
+
+    if option_selected == 1:
+        music_colour = (255, 189, 144)
+    else:
+        music_colour = (0,0,0)
+    show_text("Music", 32, music_colour, (360, 300))
+    show_text(music_stages[music_val], 32, music_colour, (960, 300))
+
+    if option_selected == 2:
+        sfx_colour = (255, 189, 144)
+    else:
+        sfx_colour = (0,0,0)
+    show_text("SFX", 32, sfx_colour, (360, 400))
+    show_text(sfx_stages[sfx_val], 32, sfx_colour, (960, 400))
+
+    if option_selected == 3:
+        timer_colour = (255, 189, 144)
+    else:
+        timer_colour = (0,0,0)
+    show_text("timer", 32, timer_colour, (360, 500))
+    show_text(timer_stages[timer_val], 32, timer_colour, (960, 500))
+
+    if option_selected == 4:
+        screen_size_colour = (255, 189, 144)
+    else:
+        screen_size_colour = (0,0,0)
+    show_text("Screen size", 32, screen_size_colour, (360, 600))
+    show_text(screen_size_stages[screen_size_val], 32, screen_size_colour, (960, 600))
+
+    pygame.draw.circle(screen, (255, 189, 144), (80, 200 + 100 * option_selected), 16)
+    pygame.draw.polygon(screen, (255, 189, 144),
+                        [[50, 200 + 100 * option_selected], [20, 230 + 100 * option_selected],
+                         [20, 170 + 100 * option_selected]])
+
+
 def check_croc_collision():
     if max(player_x,past_coord[0][0]) - min(player_x+64, past_coord[0][0]+64) + 1 < 0 and max(player_y,past_coord[0][1]) - min(player_y+96, past_coord[0][1]+96) + 1 < 0:
         restart()
@@ -359,16 +563,125 @@ def check_croc_collision():
         pass
 
 
-pygame.mixer.Sound.play(ost, 1000)
+pygame.mixer.init(44100, -16, 2, 512)
 
+#pygame.time.set_timer(play_music, 15000)
+
+pygame.mixer.Sound.play(ost,-1)
 while running:
     if game_state == "start":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                level_reset()
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    if start_option_selected > 0:
+                        start_option_selected -= 1
+                    else:
+                        start_option_selected = 3
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    if start_option_selected < 3:
+                        start_option_selected += 1
+                    else:
+                        start_option_selected = 0
+                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                    if title_y == 128:
+                        if start_option_selected == 0:
+                            level_reset()
+                        elif start_option_selected == 1:
+                            game_state = "controls_menu"
+                            screen_to_return_to = "start"
+                        elif start_option_selected == 2:
+                            game_state = "options_menu"
+                            screen_to_return_to = "start"
+                        else:
+                            running = False
+
         draw_start_menu()
+
+    elif game_state == "controls_menu":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    game_state = screen_to_return_to
+
+        draw_controls_menu()
+
+    elif game_state == "options_menu":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    if option_selected > 0:
+                        option_selected -= 1
+                    else:
+                        option_selected = 4
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    if option_selected < 4:
+                        option_selected += 1
+                    else:
+                        option_selected = 0
+                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE or event.key == pygame.K_RIGHT:
+                    if option_selected == 0:
+                        if difficulty_val < 2:
+                            difficulty_val += 1
+                        else:
+                            difficulty_val = 0
+                    elif option_selected == 1:
+                        if music_val == 0:
+                            music_val = 1
+                        else:
+                            music_val = 0
+                    elif option_selected == 2:
+                        if sfx_val == 0:
+                            sfx_val = 1
+                        else:
+                            sfx_val = 0
+                    elif option_selected == 3:
+                        if timer_val == 0:
+                            timer_val = 1
+                        else:
+                            timer_val = 0
+                    elif option_selected == 4:
+                        if screen_size_val == 0:
+                            screen_size_val = 1
+                        else:
+                            screen_size_val = 0
+
+                if event.key == pygame.K_LEFT:
+                    if option_selected == 0:
+                        if difficulty_val > 0:
+                            difficulty_val -= 1
+                        else:
+                            difficulty_val = 2
+                    elif option_selected == 1:
+                        if music_val == 0:
+                            music_val = 1
+                        else:
+                            music_val = 0
+                    elif option_selected == 2:
+                        if sfx_val == 0:
+                            sfx_val = 1
+                        else:
+                            sfx_val = 0
+                    elif option_selected == 3:
+                        if timer_val == 0:
+                            timer_val = 1
+                        else:
+                            timer_val = 0
+                    elif option_selected == 4:
+                        if screen_size_val == 0:
+                            screen_size_val = 1
+                        else:
+                            screen_size_val = 0
+
+                if event.key == pygame.K_ESCAPE:
+                    game_state = screen_to_return_to
+                    refresh_settings()
+        draw_options_menu()
 
     elif game_state == "level":
 
@@ -489,7 +802,7 @@ while running:
         if not start_moving and state != "idle":
             start_moving = True
 
-        if len(past_coord) == 60:
+        if len(past_coord) == croc_time:
             check_croc_collision()
 
         #spring
@@ -582,10 +895,14 @@ while running:
 
             draw_end_screen()
 
+
+
     clock.tick(FPS)
-    # print(pygame.time.Clock.get_fps(clock))
+    #print(pygame.time.Clock.get_fps(clock))
 
     pygame.display.flip()
+
+
 
 pygame.quit()
 sys.exit()
