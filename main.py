@@ -5,16 +5,6 @@ import pygame
 import spritesheet
 
 
-# def resource_path(relative_path):
-#     try:
-#     # PyInstaller creates a temp folder and stores path in _MEIPASS
-#         base_path = sys._MEIPASS
-#     except Exception:
-#         base_path = os.path.abspath(".")
-#
-#     return os.path.join(base_path, relative_path)
-
-
 clock = pygame.time.Clock()
 # set game FPS
 FPS = 60
@@ -54,22 +44,12 @@ game_state = "start"
 
 background_img = pygame.image.load("assets\\background.png").convert()
 
-grass_img = pygame.image.load("assets\\grass.png").convert()
-dirt_img = pygame.image.load("assets\\dirt.png").convert()
-leftcup_img = pygame.image.load("assets\\grass_leftcup.png").convert()
-rightcup_img = pygame.image.load("assets\\grass_rightcup.png").convert()
-bottomcup_img = pygame.image.load("assets\\grass_bottomcup.png").convert()
-topcup_img = pygame.image.load("assets\\grass_topcup.png").convert()
-bottomleftcorner_img = pygame.image.load("assets\\grass_bottomleftcorner.png").convert()
-bottomrightcorner_img = pygame.image.load("assets\\grass_bottomrightcorner.png").convert()
-topleftcorner_img = pygame.image.load("assets\\grass_topleftcorner.png").convert()
-toprightcorner_img = pygame.image.load("assets\\grass_toprightcorner.png").convert()
-right_img = pygame.image.load("assets\\grass_right.png").convert()
-left_img = pygame.image.load("assets\\grass_left.png").convert()
-top_img = pygame.image.load("assets\\grass_top.png").convert()
-bottom_img = pygame.image.load("assets\\grass_bottom.png").convert()
-horizontaltube_img = pygame.image.load("assets\\grass_horizontal_tube.png").convert()
-verticaltube_img = pygame.image.load("assets\\grass_vertical_tube.png").convert()
+player_spritesheet = spritesheet.SpriteSheet("assets\\player_spritesheet.png")
+
+tilemap = spritesheet.SpriteSheet("assets\\tilemap.png")
+tilemap = tilemap.images_at(((0,0,0,0),(192,192,64,64),(64,64,64,64),(192,64,64,64),(192,128,64,64),(128,192,64,64),(192,0,64,64),(0,128,64,64),(128,128,64,64),(0,0,64,64),(128,0,64,64),
+                             (128,64,64,64),(0,64,64,64),(64,0,64,64),(64,128,64,64),(0,192,64,64),(64,192,64,64)))
+
 spike = pygame.image.load("assets\\spike.png").convert_alpha()
 flag = pygame.image.load("assets\\flag.png").convert_alpha()
 spring = pygame.image.load("assets\\spring.png").convert_alpha()
@@ -81,6 +61,7 @@ croc_spritesheet_r = spritesheet.SpriteSheet("assets\\crocs_spritesheet_r.png")
 croc_spritesheet_r = croc_spritesheet_r.images_at(((0,0,64,96),(64,0,64,96),(128,0,64,96),(192,0,64,96),(256,0,64,96),(320,0,64,96),(384,0,64,96),(448,0,64,96),(512,0,64,96),(576,0,64,96),(640,0,64,96),(704,0,64,96),(768,0,64,96)), colorkey=(0,0,0))
 
 ost = pygame.mixer.Sound("assets\\Platformy OST.mp3")
+blank_sound = pygame.mixer.Sound("assets\\1-second-of-silence.mp3")
 fail = pygame.mixer.Sound("assets\\fail.mp3")
 
 x_velocity = 0
@@ -107,18 +88,22 @@ start_option_selected = 0
 #for controls and options menu
 screen_to_return_to = "start"
 
+time = [0,0]
+start_time = [0,0]
+end_time = [0,0]
+
 #settings
 option_selected = 0
-difficulty_val = 2
+difficulty_val = 0
 difficulty_stages = ["Baby","Easy","Normal"]
-music_val = 0
+music_val = 1
 music_stages = ["on","off"]
 sfx_val = 0
 sfx_stages = ["on","off"]
-timer_val = 1
+timer_val = 0
 timer_stages = ["on","off"]
-screen_size_val = 1
-screen_size_stages = ["small","large"]
+screen_size_val = 0
+screen_size_stages = ["small","medium","large"]
 
 # length of cyote(frames)
 coyote_time = 5
@@ -134,21 +119,24 @@ chanel = pygame.mixer.Channel(0)
 start_moving = False
 past_coord = []
 croc_num = 0
-
 croc_time = 61
+
+#screen refresh
+resolution_scale = 1
 
 
 def show_text(text, font_size, colour, centre_coords):
-    txt = pygame.font.Font("PressStart2P.ttf", font_size).render(text, True, colour)
+    txt = pygame.font.Font("PressStart2P.ttf", int(font_size*resolution_scale)).render(text, True, colour)
     txt_rect = txt.get_rect()
-    txt_rect.center = centre_coords
+    txt_rect.center = (centre_coords[0]*resolution_scale,centre_coords[1]*resolution_scale)
     screen.blit(txt, txt_rect)
 
 
 def level_reset():
-    global player_x, player_y, game_state, x_velocity, y_velocity, start_moving, past_coord
+    global player_x, player_y, game_state, x_velocity, y_velocity, start_moving, past_coord,start_time
 
     start_moving = False
+    start_time[levels.index(world_map)] = 0
     past_coord = []
 
     player_x = int(world_map[-1][0])
@@ -163,7 +151,8 @@ def level_reset():
 def restart():
     level_reset()
 
-    pygame.mixer.Sound.play(fail, 0)
+    if sfx_val == 0:
+        pygame.mixer.Sound.play(fail, 0)
 
 
 def get_sprite():
@@ -171,74 +160,78 @@ def get_sprite():
 
     if state == "idle" and direction == "r":
         if 1 <= idle_sprite <= 100:
-            img = pygame.image.load("assets\\idle1_right.png").convert_alpha()
+            img = player_spritesheet.image_at((128,0,64,96),colorkey=(0,0,0))
             idle_sprite += 1
         elif 101 <= idle_sprite <= 200:
-            img = pygame.image.load("assets\\idle2_right.png").convert_alpha()
+            img = player_spritesheet.image_at((192,0,64,96),colorkey=(0,0,0))
             idle_sprite += 1
         else:
             idle_sprite = 1
 
     if state == "idle" and direction == "l":
         if 1 <= idle_sprite <= 100:
-            img = pygame.image.load("assets\\idle1_left.png").convert_alpha()
+            img = player_spritesheet.image_at((0,0,64,96),colorkey=(0,0,0))
             idle_sprite += 1
         elif 101 <= idle_sprite <= 200:
-            img = pygame.image.load("assets\\idle2_left.png").convert_alpha()
+            img = player_spritesheet.image_at((64,0,64,96),colorkey=(0,0,0))
             idle_sprite += 1
         else:
             idle_sprite = 1
 
     if state == "run" and direction == "r":
         if 1 <= right_sprite <= 10:
-            img = pygame.image.load("assets\\right1.png").convert_alpha()
+            img = player_spritesheet.image_at((512,0,64,96),colorkey=(0,0,0))
             right_sprite += 1
         elif 11 <= right_sprite <= 20:
-            img = pygame.image.load("assets\\right2.png").convert_alpha()
+            img = player_spritesheet.image_at((576,0,64,96),colorkey=(0,0,0))
             right_sprite += 1
         elif 21 <= right_sprite <= 30:
-            img = pygame.image.load("assets\\right3.png").convert_alpha()
+            img = player_spritesheet.image_at((640,0,64,96),colorkey=(0,0,0))
             right_sprite += 1
         elif 31 <= right_sprite <= 40:
-            img = pygame.image.load("assets\\right4.png").convert_alpha()
+            img = player_spritesheet.image_at((704,0,64,96),colorkey=(0,0,0))
             right_sprite += 1
         else:
             right_sprite = 1
 
     if state == "run" and direction == "l":
         if 1 <= left_sprite <= 10:
-            img = pygame.image.load("assets\\left1.png").convert_alpha()
+            img = player_spritesheet.image_at((256,0,64,96),colorkey=(0,0,0))
             left_sprite += 1
         elif 11 <= left_sprite <= 20:
-            img = pygame.image.load("assets\\left2.png").convert_alpha()
+            img = player_spritesheet.image_at((320,0,64,96),colorkey=(0,0,0))
             left_sprite += 1
         elif 21 <= left_sprite <= 30:
-            img = pygame.image.load("assets\\left3.png").convert_alpha()
+            img = player_spritesheet.image_at((384,0,64,96),colorkey=(0,0,0))
             left_sprite += 1
         elif 31 <= left_sprite <= 40:
-            img = pygame.image.load("assets\\left4.png").convert_alpha()
+            img = player_spritesheet.image_at((448,0,64,96),colorkey=(0,0,0))
             left_sprite += 1
         else:
             left_sprite = 1
 
     if state == "jump_up":
         if direction == "l":
-            img = pygame.image.load("assets\\jump_l.png").convert_alpha()
+            img = player_spritesheet.image_at((768,0,64,96),colorkey=(0,0,0))
         else:
-            img = pygame.image.load("assets\\jump_r.png").convert_alpha()
+            img = player_spritesheet.image_at((832,0,64,96),colorkey=(0,0,0))
 
     if state == "fall":
         if direction == "l":
-            img = pygame.image.load("assets\\fall_l.png").convert_alpha()
+            img = player_spritesheet.image_at((896,0,64,96),colorkey=(0,0,0))
         else:
-            img = pygame.image.load("assets\\fall_r.png").convert_alpha()
+            img = player_spritesheet.image_at((960,0,64,96),colorkey=(0,0,0))
+
+
+def draw_tile(image, x, y):
+    screen.blit(image, (x*resolution_scale,y*resolution_scale))
 
 
 def draw_level(world_map):
-    global player,past_coord, croc_num
+    global player,past_coord, croc_num, time_shown, img
 
     get_sprite()
-    screen.blit(background_img, (0, 0))
+    draw_tile(background_img, 0, 0)
 
     player_offset = player_x % 64 + 32
     player_bit = (player_x // 64) - 9.5
@@ -258,69 +251,23 @@ def draw_level(world_map):
                 tile = world_map[y][int(player_bit + x)]
             # spike
             if tile == -1:
-                screen.blit(spike, (x * 64 - player_offset, y * 64))
-            # grass
-            if tile == 1:
-                screen.blit(grass_img, (x * 64 - player_offset, y * 64))
-            # dirt
-            elif tile == 2:
-                screen.blit(dirt_img, (x * 64 - player_offset, y * 64))
-            # right side missing/left cup
-            elif tile == 3:
-                screen.blit(leftcup_img, (x * 64 - player_offset, y * 64))
-            # left side missing/right cup
-            elif tile == 4:
-                screen.blit(rightcup_img, (x * 64 - player_offset, y * 64))
-            # top side missing/bottom cup
-            elif tile == 5:
-                screen.blit(bottomcup_img, (x * 64 - player_offset, y * 64))
-            # bottom side missing/top cup
-            elif tile == 6:
-                screen.blit(topcup_img, (x * 64 - player_offset, y * 64))
-            # bottom left corner
-            elif tile == 7:
-                screen.blit(bottomleftcorner_img, (x * 64 - player_offset, y * 64))
-            # bottom right corner
-            elif tile == 8:
-                screen.blit(bottomrightcorner_img, (x * 64 - player_offset, y * 64))
-            # top left corner
-            elif tile == 9:
-                screen.blit(topleftcorner_img, (x * 64 - player_offset, y * 64))
-            # top right corner
-            elif tile == 10:
-                screen.blit(toprightcorner_img, (x * 64 - player_offset, y * 64))
-            # right
-            elif tile == 11:
-                screen.blit(right_img, (x * 64 - player_offset, y * 64))
-            # left
-            elif tile == 12:
-                screen.blit(left_img, (x * 64 - player_offset, y * 64))
-            # top
-            elif tile == 13:
-                screen.blit(top_img, (x * 64 - player_offset, y * 64))
-            # bottom
-            elif tile == 14:
-                screen.blit(bottom_img, (x * 64 - player_offset, y * 64))
-            # horizontal tube
-            elif tile == 15:
-                screen.blit(horizontaltube_img, (x * 64 - player_offset, y * 64))
-            # vertical tube
-            elif tile == 16:
-                screen.blit(verticaltube_img, (x * 64 - player_offset, y * 64))
-            #spring
+                draw_tile(spike,x * 64 - player_offset, y * 64)
+            # #spring
             elif tile == 99:
-                screen.blit(spring, (x * 64 - player_offset, y * 64))
-
+                draw_tile(spring,x * 64 - player_offset, y * 64)
             #flag
             elif tile == -99:
-                screen.blit(flag, (x * 64 - player_offset, y * 64))
+                draw_tile(flag,x * 64 - player_offset, y * 64)
+            else:
+                draw_tile(tilemap[tile],x * 64 - player_offset, y * 64)
 
+    img = pygame.transform.scale(img, (64*resolution_scale,96*resolution_scale))
     if player_x < 608:
-        screen.blit(img, (player_x, player_y))
+        draw_tile(img, player_x, player_y)
     elif player_x > len(world_map[0]) * 64 - 736:
-        screen.blit(img, ((1346 - (len(world_map[0]) * 64 - player_x)), player_y))
+        draw_tile(img, (1346 - (len(world_map[0]) * 64 - player_x)), player_y)
     else:
-        screen.blit(img, (608, player_y))
+        draw_tile(img, 608, player_y)
 
     if len(past_coord) > croc_time:
         croc_num += 1
@@ -341,9 +288,23 @@ def draw_level(world_map):
 
         past_coord.pop(0)
 
+    if timer_val == 0:
+
+        if start_moving:
+            time_shown = str(pygame.time.get_ticks()-start_time[levels.index(world_map)])
+        else:
+            time_shown = "0000"
+
+        if len(time_shown) < 4:
+            time_shown = "0." + time_shown
+        else:
+            time_shown = time_shown[0:-3] + "." + time_shown[-4:-1]
+        pygame.draw.rect(screen, (255, 255, 255), (20*resolution_scale, 50*resolution_scale, (250 + (len(time_shown)-5)*50)*resolution_scale, 50*resolution_scale))
+        show_text(time_shown, 48,(0,0,0),((120 + (len(time_shown)-4)*25),80))
+
 
 def refresh_settings():
-    global croc_time
+    global croc_time, resolution_scale, tilemap,screen,spring,spike,flag
 
     if difficulty_val == 0:
         croc_time = 10000000000
@@ -351,6 +312,25 @@ def refresh_settings():
         croc_time = 120
     else:
         croc_time = 61
+
+    if screen_size_val == 0:
+        resolution_scale = 0.5
+    elif resolution_scale == 1:
+        resolution_scale = 0.75
+    else:
+        resolution_scale = 1
+
+    new_tilemap = [tilemap[0]]
+    for tiles in tilemap:
+        if tilemap.index(tiles) != 0:
+            new_tilemap.append(pygame.transform.scale(tiles, (64 * resolution_scale, 64 * resolution_scale)))
+    tilemap = new_tilemap
+    spring = pygame.transform.scale(spring, (64 * resolution_scale, 64 * resolution_scale))
+    spike = pygame.transform.scale(spike, (64 * resolution_scale, 64 * resolution_scale))
+    flag = pygame.transform.scale(flag, (64 * resolution_scale, 64 * resolution_scale))
+    pygame.transform.scale(background_img, (1280 * resolution_scale, 960 * resolution_scale))
+    screen = pygame.display.set_mode((1280*resolution_scale, 960*resolution_scale))
+
 
 def draw_start_menu():
     global title_y
@@ -363,75 +343,56 @@ def draw_start_menu():
         play_prompt_colour = (255, 189, 144)
     else:
         play_prompt_colour = (0,0,0)
-    play_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("PLAY", True, play_prompt_colour)
-    play_prompt_text_rect = play_prompt_text.get_rect()
-    play_prompt_text_rect.center = (640, 360)
 
     if start_option_selected == 1:
         controls_prompt_colour = (255, 189, 144)
     else:
         controls_prompt_colour = (0,0,0)
-    controls_menu_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("CONTROLS", True, controls_prompt_colour)
-    controls_menu_prompt_rect = controls_menu_prompt_text.get_rect()
-    controls_menu_prompt_rect.center = (640, 460)
 
     if start_option_selected == 2:
         options_prompt_colour = (255, 189, 144)
     else:
         options_prompt_colour = (0,0,0)
-    options_menu_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("OPTIONS", True, options_prompt_colour)
-    options_menu_prompt_rect = options_menu_prompt_text.get_rect()
-    options_menu_prompt_rect.center = (640, 560)
 
     if start_option_selected == 3:
         quit_prompt_colour = (255, 189, 144)
     else:
         quit_prompt_colour = (0,0,0)
-    quit_prompt_text = pygame.font.Font("PressStart2P.ttf", 48).render("QUIT", True, quit_prompt_colour)
-    quit_prompt_rect = quit_prompt_text.get_rect()
-    quit_prompt_rect.center = (640, 660)
 
     if title_y != 128:
         title_y += 2
 
     if title_y == 128:
-        screen.blit(play_prompt_text, play_prompt_text_rect)
-        screen.blit(controls_menu_prompt_text, controls_menu_prompt_rect)
-        screen.blit(options_menu_prompt_text, options_menu_prompt_rect)
-        screen.blit(quit_prompt_text,quit_prompt_rect)
+        show_text("PLAY", 48, play_prompt_colour, (640, 360))
+        show_text("CONTROLS",48,controls_prompt_colour,(640,460))
+        show_text("OPTIONS",48,options_prompt_colour,(640,560))
+        show_text("QUIT",48,quit_prompt_colour,(640,660))
 
-        pygame.draw.circle(screen, (255, 189, 144), (400, 360 + 100 * start_option_selected), 16)
-        pygame.draw.circle(screen, (255, 189, 144), (880, 360 + 100 * start_option_selected), 16)
-        pygame.draw.polygon(screen, (255, 189, 144),[[375,360 + 100 * start_option_selected],[330,330 + 100 * start_option_selected],[330,390 + 100 * start_option_selected]])
-        pygame.draw.polygon(screen, (255, 189, 144),[[905, 360 + 100 * start_option_selected], [960, 330 + 100 * start_option_selected],[960, 390 + 100 * start_option_selected]])
+        pygame.draw.circle(screen, (255, 189, 144), (400*resolution_scale, (360 + 100 * start_option_selected)*resolution_scale), 16*resolution_scale)
+        pygame.draw.circle(screen, (255, 189, 144), (880*resolution_scale, (360 + 100 * start_option_selected)*resolution_scale), 16*resolution_scale)
+        pygame.draw.polygon(screen, (255, 189, 144),[[375*resolution_scale,(360 + 100 * start_option_selected)*resolution_scale],
+                                                     [330*resolution_scale,(330 + 100 * start_option_selected)*resolution_scale],
+                                                     [330*resolution_scale,(390 + 100 * start_option_selected)*resolution_scale]])
+        pygame.draw.polygon(screen, (255, 189, 144),[[905*resolution_scale, (360 + 100 * start_option_selected)*resolution_scale],
+                                                     [960*resolution_scale, (330 + 100 * start_option_selected)*resolution_scale],
+                                                     [960*resolution_scale, (390 + 100 * start_option_selected)*resolution_scale]])
 
 
 def draw_end_screen():
     screen.fill((255, 181, 68))
 
-    victory = pygame.font.Font("PressStart2P.ttf", 96).render("Victory", True, (68, 142, 255))
-    victory_rect = victory.get_rect()
-    victory_rect.center = (640, 256)
-
-    restart_prompt = pygame.font.Font("PressStart2P.ttf", 32).render("Press any key to have another go", True,
-                                                                     (68, 142, 255))
-    restart_prompt_rect = restart_prompt.get_rect()
-    restart_prompt_rect.center = (640, 640)
-
-    screen.blit(victory, victory_rect)
+    show_text("VICTORY",96,(68, 142, 255),(640,256))
 
     if end_count > 3:
-        screen.blit(restart_prompt, restart_prompt_rect)
+        show_text(str(time[0]), 48, (68, 142, 255), (640,380))
+        show_text(str(time[1]), 48, (68, 142, 255), (640, 480))
+        show_text("Press any key to have another go", 32, (68,142,255),(640,640))
 
 
 def draw_pause_menu():
-    pygame.draw.rect(screen, (0, 0, 0), (320, 0, 640, 1280))
+    pygame.draw.rect(screen, (0, 0, 0), (320*resolution_scale, 0*resolution_scale, 640*resolution_scale, 1280*resolution_scale))
 
-    Pause_text = pygame.font.Font("PressStart2P.ttf", 96).render("Pause", True, (255, 255, 255))
-    Pause_text_rect = Pause_text.get_rect()
-    Pause_text_rect.center = (640, 256)
-
-    screen.blit(Pause_text, Pause_text_rect)
+    show_text("PAUSE",96,(255,255,255),(640,256))
 
 
 def draw_controls_menu():
@@ -441,69 +402,69 @@ def draw_controls_menu():
 
     show_text("Move left and right",32,(255, 189, 144),(960,220))
 
-    pygame.draw.rect(screen, (189, 195, 199), (50, 190, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (50*resolution_scale, 190*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("A",48,(0,0,0),(80,220))
 
-    pygame.draw.rect(screen, (189, 195, 199), (150, 190, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (150*resolution_scale, 190*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("D", 48, (0, 0, 0), (180, 220))
 
     show_text("or", 32, (0, 0, 0), (320, 220))
 
-    pygame.draw.rect(screen, (189, 195, 199), (430, 190, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (430*resolution_scale, 190*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("←", 48, (0, 0, 0), (460, 220))
 
-    pygame.draw.rect(screen, (189, 195, 199), (530, 190, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (530*resolution_scale, 190*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("→", 48, (0, 0, 0), (560, 220))
 
     #jump controls
     show_text("Jump",32,(255,189,144),(960,320))
 
-    pygame.draw.rect(screen, (189, 195, 199), (50, 290, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (50*resolution_scale, 290*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("W",48,(0,0,0),(80,320))
 
     show_text("or", 32, (0, 0, 0), (200, 320))
 
-    pygame.draw.rect(screen, (189, 195, 199), (290, 290, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (290*resolution_scale, 290*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("↑", 48, (0, 0, 0), (320, 320))
 
     show_text("or", 40, (0, 0, 0), (440, 320))
 
-    pygame.draw.rect(screen, (189, 195, 199), (520, 290, 240, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (520*resolution_scale, 290*resolution_scale, 240*resolution_scale, 55*resolution_scale))
     show_text("SPACE",48,(0,0,0),(640,320))
 
     #Pause or leave menus
     show_text("Pause game or leave menus", 32, (255, 189, 144), (840, 420))
 
-    pygame.draw.rect(screen, (189, 195, 199), (240, 390, 150, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (240*resolution_scale, 390*resolution_scale, 150*resolution_scale, 55*resolution_scale))
     show_text("ESC", 48, (0, 0, 0), (320, 420))
 
     #restart level
     show_text("restart a level", 32, (255, 189, 144), (960, 520))
 
-    pygame.draw.rect(screen, (189, 195, 199), (190, 490, 250, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (190*resolution_scale, 490*resolution_scale, 250*resolution_scale, 55*resolution_scale))
     show_text("ENTER", 48, (0, 0, 0), (320, 520))
 
     #menu navigation
     show_text("move around menus", 32, (255, 189, 144), (960, 620))
 
-    pygame.draw.rect(screen, (189, 195, 199), (150, 570, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (150*resolution_scale, 570*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("W", 48, (0, 0, 0), (180, 600))
-    pygame.draw.rect(screen, (189, 195, 199), (150, 640, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (150*resolution_scale, 640*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("S", 48, (0, 0, 0), (180, 670))
 
     show_text("or", 40, (0, 0, 0), (320, 620))
 
-    pygame.draw.rect(screen, (189, 195, 199), (430, 570, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (430*resolution_scale, 570*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("↑", 48, (0, 0, 0), (460, 600))
-    pygame.draw.rect(screen, (189, 195, 199), (430, 640, 55, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (430*resolution_scale, 640*resolution_scale, 55*resolution_scale, 55*resolution_scale))
     show_text("↓", 48, (0, 0, 0), (460, 670))
 
     #select in menus
     show_text("Select in menus", 32, (255, 189, 144), (960, 750))
-    pygame.draw.rect(screen, (189, 195, 199), (40, 720, 240, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (40*resolution_scale, 720*resolution_scale, 240*resolution_scale, 55*resolution_scale))
     show_text("SPACE", 48, (0, 0, 0), (160, 750))
     show_text("or", 40, (0, 0, 0), (360, 750))
-    pygame.draw.rect(screen, (189, 195, 199), (430, 720, 250, 55))
+    pygame.draw.rect(screen, (189, 195, 199), (430*resolution_scale, 720*resolution_scale, 250*resolution_scale, 55*resolution_scale))
     show_text("ENTER", 48, (0, 0, 0), (560, 750))
 
     #press escape to go back or something
@@ -540,7 +501,7 @@ def draw_options_menu():
         timer_colour = (255, 189, 144)
     else:
         timer_colour = (0,0,0)
-    show_text("timer", 32, timer_colour, (360, 500))
+    show_text("show timer", 32, timer_colour, (360, 500))
     show_text(timer_stages[timer_val], 32, timer_colour, (960, 500))
 
     if option_selected == 4:
@@ -550,10 +511,10 @@ def draw_options_menu():
     show_text("Screen size", 32, screen_size_colour, (360, 600))
     show_text(screen_size_stages[screen_size_val], 32, screen_size_colour, (960, 600))
 
-    pygame.draw.circle(screen, (255, 189, 144), (80, 200 + 100 * option_selected), 16)
+    pygame.draw.circle(screen, (255, 189, 144), (80*resolution_scale, (200 + 100 * option_selected)*resolution_scale), 16*resolution_scale)
     pygame.draw.polygon(screen, (255, 189, 144),
-                        [[50, 200 + 100 * option_selected], [20, 230 + 100 * option_selected],
-                         [20, 170 + 100 * option_selected]])
+                        [[50*resolution_scale, (200 + 100 * option_selected)*resolution_scale], [20*resolution_scale, (230 + 100 * option_selected)*resolution_scale],
+                         [20*resolution_scale, (170 + 100 * option_selected)*resolution_scale]])
 
 
 def check_croc_collision():
@@ -565,10 +526,12 @@ def check_croc_collision():
 
 pygame.mixer.init(44100, -16, 2, 512)
 
-#pygame.time.set_timer(play_music, 15000)
+if music_val == 0:
+    chanel.play(ost,-1)
 
-pygame.mixer.Sound.play(ost,-1)
+refresh_settings()
 while running:
+
     if game_state == "start":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -632,8 +595,10 @@ while running:
                             difficulty_val = 0
                     elif option_selected == 1:
                         if music_val == 0:
+                            chanel.play(blank_sound)
                             music_val = 1
                         else:
+                            chanel.play(ost,-1)
                             music_val = 0
                     elif option_selected == 2:
                         if sfx_val == 0:
@@ -660,8 +625,10 @@ while running:
                     elif option_selected == 1:
                         if music_val == 0:
                             music_val = 1
+                            chanel.play(blank_sound)
                         else:
                             music_val = 0
+                            chanel.play(ost, -1)
                     elif option_selected == 2:
                         if sfx_val == 0:
                             sfx_val = 1
@@ -691,6 +658,7 @@ while running:
             if event.type == pygame.KEYDOWN:
                 if not start_moving:
                     start_moving = True
+                    start_time[levels.index(world_map)] = pygame.time.get_ticks()
 
                 # escape key
                 if event.key == pygame.K_ESCAPE:
@@ -801,6 +769,7 @@ while running:
 
         if not start_moving and state != "idle":
             start_moving = True
+            start_time[levels.index(world_map)] = pygame.time.get_ticks()
 
         if len(past_coord) == croc_time:
             check_croc_collision()
@@ -819,8 +788,12 @@ while running:
                 world_map[int((player_y + 48) // 64)][int((player_x + 65) // 64)] == -99:
             if world_map == levels[-1]:
                 game_state = "end"
+                end_time[levels.index(world_map)] = pygame.time.get_ticks()
+                for i in range(len(end_time)):
+                    time[i] = (end_time[i]-start_time[i])/1000
                 pygame.time.set_timer(pygame.USEREVENT, 500)
             else:
+                end_time[levels.index(world_map)] = pygame.time.get_ticks()
                 if world_map == levels[0]:
                     world_map = levels[1]
                     level_reset()
