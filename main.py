@@ -85,6 +85,12 @@ right_sprite = 1
 title_y = 0
 start_option_selected = 0
 
+#end_option_selected
+end_option = 0
+
+#pause option selected
+pause_option = 1
+
 #for controls and options menu
 screen_to_return_to = "start"
 
@@ -94,15 +100,15 @@ end_time = [0,0]
 
 #settings
 option_selected = 0
-difficulty_val = 0
+difficulty_val = 2
 difficulty_stages = ["Baby","Easy","Normal"]
-music_val = 1
+music_val = 0
 music_stages = ["on","off"]
 sfx_val = 0
 sfx_stages = ["on","off"]
 timer_val = 0
 timer_stages = ["on","off"]
-screen_size_val = 0
+screen_size_val = 1
 screen_size_stages = ["small","medium","large"]
 
 # length of cyote(frames)
@@ -278,13 +284,14 @@ def draw_level(world_map):
             croc = croc_spritesheet_l[croc_num // 6]
         if croc_num == 66:
             croc_num = 0
+        croc = pygame.transform.scale(croc,(64*resolution_scale,96*resolution_scale))
 
         if player_x < 608:
-            screen.blit(croc, (past_coord[0][0],past_coord[0][1]))
+            screen.blit(croc, (past_coord[0][0]*resolution_scale,past_coord[0][1]*resolution_scale))
         elif player_x > len(world_map[0]) * 64 - 736:
-            screen.blit(croc, (1346 - (len(world_map[0]) * 64 - past_coord[0][0]), past_coord[0][1]))
+            screen.blit(croc, ((1346 - (len(world_map[0]) * 64 - past_coord[0][0]))*resolution_scale, past_coord[0][1]*resolution_scale))
         else:
-            screen.blit(croc, (608-(player_x-past_coord[0][0]),past_coord[0][1]))
+            screen.blit(croc, ((608-(player_x-past_coord[0][0]))*resolution_scale,past_coord[0][1]*resolution_scale))
 
         past_coord.pop(0)
 
@@ -315,7 +322,7 @@ def refresh_settings():
 
     if screen_size_val == 0:
         resolution_scale = 0.5
-    elif resolution_scale == 1:
+    elif screen_size_val == 1:
         resolution_scale = 0.75
     else:
         resolution_scale = 1
@@ -384,15 +391,75 @@ def draw_end_screen():
     show_text("VICTORY",96,(68, 142, 255),(640,256))
 
     if end_count > 3:
+        show_text("Stage 1", 48, (68, 142, 255), (320,380))
         show_text(str(time[0]), 48, (68, 142, 255), (640,380))
+        show_text("Stage 2", 48, (68, 142, 255), (320, 480))
         show_text(str(time[1]), 48, (68, 142, 255), (640, 480))
-        show_text("Press any key to have another go", 32, (68,142,255),(640,640))
+        show_text("Stage 3", 48, (68, 142, 255), (320, 580))
+        show_text("-", 48, (68, 142, 255), (640, 580))
+        pygame.draw.line(screen, (68,142,255),(80*resolution_scale,620*resolution_scale),(1200*resolution_scale,620*resolution_scale))
+        if end_option == 0:
+            play_again_col = (68,142,255)
+        else:
+            play_again_col = (185, 213, 255)
+        show_text("PLAY AGAIN",48, play_again_col, (640,680))
+        if end_option == 1:
+            exit_col = (68,142,255)
+        else:
+            exit_col = (185, 213, 255)
+        show_text("EXIT",48, exit_col, (640,780))
+        pygame.draw.circle(screen,(68,142,255),(320*resolution_scale,(680+100*end_option)*resolution_scale),16*resolution_scale)
+        pygame.draw.circle(screen, (68, 142, 255),(960 * resolution_scale, (680 + 100 * end_option) * resolution_scale), 16 * resolution_scale)
+        pygame.draw.polygon(screen,(68,142,255), [[300*resolution_scale,(680+100*end_option)*resolution_scale],
+                                                  [270*resolution_scale,(650+100*end_option)*resolution_scale],
+                                                  [270*resolution_scale,(710+100*end_option)*resolution_scale]])
+        pygame.draw.polygon(screen, (68, 142, 255),
+                            [[980 * resolution_scale, (680 + 100 * end_option) * resolution_scale],
+                             [1010 * resolution_scale, (650 + 100 * end_option) * resolution_scale],
+                             [1010 * resolution_scale, (710 + 100 * end_option) * resolution_scale]])
 
 
 def draw_pause_menu():
-    pygame.draw.rect(screen, (0, 0, 0), (320*resolution_scale, 0*resolution_scale, 640*resolution_scale, 1280*resolution_scale))
+    draw_level(world_map)
 
-    show_text("PAUSE",96,(255,255,255),(640,256))
+    pygame.draw.rect(screen, (43, 178, 192), (320*resolution_scale, 0*resolution_scale, 640*resolution_scale, 1280*resolution_scale))
+    show_text("PAUSE",96,(192, 57, 43),(640,256))
+
+    if pause_option == 0:
+        resume_colour = (192, 57, 43)
+    else:
+        resume_colour = (239,206,202)
+    show_text("RESUME",48,resume_colour,(640,360))
+
+    if pause_option == 1:
+        controls_colour = (192, 57, 43)
+    else:
+        controls_colour = (239,206,202)
+    show_text("CONTROLS",48,controls_colour,(640,460))
+
+    if pause_option == 2:
+        options_colour = (192, 57, 43)
+    else:
+        options_colour = (239,206,202)
+    show_text("OPTIONS",48,options_colour,(640,560))
+
+    if pause_option == 3:
+        exit_colour = (192, 57, 43)
+    else:
+        exit_colour = (239,206,202)
+    show_text("EXIT",48,exit_colour,(640,660))
+
+    pygame.draw.circle(screen, (192, 57, 43), (430 * resolution_scale, (360 + 100 * pause_option) * resolution_scale),
+                       16 * resolution_scale)
+    pygame.draw.circle(screen, (192, 57, 43), (850 * resolution_scale, (360 + 100 * pause_option) * resolution_scale),
+                       16 * resolution_scale)
+    pygame.draw.polygon(screen, (192, 57, 43), [[410 * resolution_scale, (360 + 100 * pause_option) * resolution_scale],
+                                                 [380 * resolution_scale, (330 + 100 * pause_option) * resolution_scale],
+                                                 [380 * resolution_scale, (390 + 100 * pause_option) * resolution_scale]])
+    pygame.draw.polygon(screen, (192, 57, 43),
+                        [[870 * resolution_scale, (360 + 100 * pause_option) * resolution_scale],
+                         [900 * resolution_scale, (330 + 100 * pause_option) * resolution_scale],
+                         [900 * resolution_scale, (390 + 100 * pause_option) * resolution_scale]])
 
 
 def draw_controls_menu():
@@ -611,8 +678,8 @@ while running:
                         else:
                             timer_val = 0
                     elif option_selected == 4:
-                        if screen_size_val == 0:
-                            screen_size_val = 1
+                        if screen_size_val < 2:
+                            screen_size_val += 1
                         else:
                             screen_size_val = 0
 
@@ -640,10 +707,10 @@ while running:
                         else:
                             timer_val = 0
                     elif option_selected == 4:
-                        if screen_size_val == 0:
-                            screen_size_val = 1
+                        if screen_size_val > 0:
+                            screen_size_val -= 1
                         else:
-                            screen_size_val = 0
+                            screen_size_val = 2
 
                 if event.key == pygame.K_ESCAPE:
                     game_state = screen_to_return_to
@@ -827,14 +894,14 @@ while running:
 
         if y_velocity > 0:
             y = player_y - y_velocity
-            if world_map[int(y // 64)][int((player_x + 1) // 64)] <= 0 or world_map[int(y // 64)][int((player_x + 63) // 64)] <= 0:
+            if world_map[int(y // 64)][int((player_x + 1) // 64)] <= 0 and world_map[int(y // 64)][int((player_x + 63) // 64)] <= 0:
                 player_y -= y_velocity
             else:
                 y_velocity = 0
                 state = "fall"
         elif y_velocity < 0:
             y = player_y + 96 - y_velocity
-            if world_map[int(y // 64)][int((player_x + 1) // 64)] <= 0 or world_map[int(y // 64)][int((player_x + 63) // 64)] <= 0:
+            if world_map[int(y // 64)][int((player_x + 1) // 64)] <= 0 and world_map[int(y // 64)][int((player_x + 63) // 64)] <= 0:
                 player_y -= y_velocity
             else:
                 y_velocity = 0
@@ -853,6 +920,27 @@ while running:
                 # escape key
                 if event.key == pygame.K_ESCAPE:
                     game_state = "level"
+                if event.key == pygame.K_UP:
+                    if pause_option == 0:
+                        pause_option = 3
+                    else:
+                        pause_option -= 1
+                if event.key == pygame.K_DOWN:
+                    if pause_option == 3:
+                        pause_option = 0
+                    else:
+                        pause_option += 1
+                if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                    if pause_option == 0:
+                        game_state = "level"
+                    elif pause_option == 1:
+                        game_state = "controls_menu"
+                        screen_to_return_to = "pause"
+                    elif pause_option == 2:
+                        game_state = "options_menu"
+                        screen_to_return_to = "pause"
+                    elif pause_option == 3:
+                        game_state = "start"
             draw_pause_menu()
 
     elif game_state == "end":
@@ -863,19 +951,28 @@ while running:
                 running = False
             if event.type == pygame.KEYDOWN:
                 if end_count > 3:
-                    world_map = levels[0]
-                    level_reset()
+                    if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
+                        if end_option == 0:
+                            level_reset()
+                        elif end_option == 1:
+                            game_state = "start"
+                    if event.key == pygame.K_UP:
+                        if end_option == 0:
+                            end_option = 1
+                        else:
+                            end_option = 0
+                    if event.key == pygame.K_DOWN:
+                        if end_option == 0:
+                            end_option = 1
+                        else:
+                            end_option = 0
 
             draw_end_screen()
-
-
 
     clock.tick(FPS)
     #print(pygame.time.Clock.get_fps(clock))
 
     pygame.display.flip()
-
-
 
 pygame.quit()
 sys.exit()
