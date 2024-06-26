@@ -1,4 +1,5 @@
 -1 = spike
+-99  = spring
 
 0 = air
 1 = grass
@@ -22,4 +23,4 @@
 15 = grass horizontal tube
 16 = grass vertical tube
 
--99 = flag -
+-99 = flag

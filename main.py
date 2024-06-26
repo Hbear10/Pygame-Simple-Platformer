@@ -30,7 +30,7 @@ def file_load(file_name):
     return file_scan
 
 
-levels = [file_load("level1"), file_load("level2")]
+levels = [file_load("level1"), file_load("level2"),file_load("level3")]
 
 world_map = levels[0]
 
@@ -95,15 +95,15 @@ pause_option = 0
 #for controls and options menu
 screen_to_return_to = "start"
 
-time = [0,0]
-start_time = [0,0]
-end_time = [0,0]
+time = [0,0,0]
+start_time = [0,0,0]
+end_time = [0,0,0]
 
 #settings
 option_selected = 0
 difficulty_val = 2
 difficulty_stages = ["Baby","Easy","Normal"]
-music_val = 0
+music_val = 1
 music_stages = ["on","off"]
 sfx_val = 0
 sfx_stages = ["on","off"]
@@ -409,12 +409,12 @@ def draw_end_screen():
     show_text("VICTORY",96,(68, 142, 255),(640,256))
 
     if end_count > 3:
-        show_text("Stage 1", 48, (68, 142, 255), (320,380))
+        show_text("Stage 1", 48, (68, 142, 255), (280,380))
         show_text(str(time[0]), 48, (68, 142, 255), (640,380))
-        show_text("Stage 2", 48, (68, 142, 255), (320, 480))
+        show_text("Stage 2", 48, (68, 142, 255), (280, 480))
         show_text(str(time[1]), 48, (68, 142, 255), (640, 480))
-        show_text("Stage 3", 48, (68, 142, 255), (320, 580))
-        show_text("-", 48, (68, 142, 255), (640, 580))
+        show_text("Stage 3", 48, (68, 142, 255), (280, 580))
+        show_text(str(time[2]), 48, (68, 142, 255), (640, 580))
         pygame.draw.line(screen, (68,142,255),(80*resolution_scale,620*resolution_scale),(1200*resolution_scale,620*resolution_scale))
         if end_option == 0:
             play_again_col = (68,142,255)
