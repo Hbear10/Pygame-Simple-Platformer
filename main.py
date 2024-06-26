@@ -3,6 +3,7 @@ import sys
 import os
 import pygame
 import spritesheet
+import random
 
 
 clock = pygame.time.Clock()
@@ -89,7 +90,7 @@ start_option_selected = 0
 end_option = 0
 
 #pause option selected
-pause_option = 1
+pause_option = 0
 
 #for controls and options menu
 screen_to_return_to = "start"
@@ -130,6 +131,11 @@ croc_time = 61
 #screen refresh
 resolution_scale = 1
 
+#fail comments
+spike_fail_comments = ["Didn't you see that","Ouch","Sharp","Pointy","That's not good","You made a mess","don't jump there","git gud","that was pointy","Spike 1, You 0","it had a point","Did you want a hug?"]
+croc_fail_comments = ["I'm sure you're tasty","Ouch","nom nom nom","You're supposed to run","really?","How do teeth feel?","was that fun?","git gud","player-flavoured","bite-sized performance","jaws of defeat"]
+fail_comment_size = 0
+fail_comment = ""
 
 def show_text(text, font_size, colour, centre_coords):
     txt = pygame.font.Font("PressStart2P.ttf", int(font_size*resolution_scale)).render(text, True, colour)
@@ -233,8 +239,15 @@ def draw_tile(image, x, y):
     screen.blit(image, (x*resolution_scale,y*resolution_scale))
 
 
+def generate_fail_comment(list):
+    global fail_comment_size, fail_comment
+
+    fail_comment = random.choice(list)
+    fail_comment_size = 30
+
+
 def draw_level(world_map):
-    global player,past_coord, croc_num, time_shown, img
+    global player,past_coord, croc_num, time_shown, img, fail_comment_size
 
     get_sprite()
     draw_tile(background_img, 0, 0)
@@ -308,6 +321,11 @@ def draw_level(world_map):
             time_shown = time_shown[0:-3] + "." + time_shown[-4:-1]
         pygame.draw.rect(screen, (255, 255, 255), (20*resolution_scale, 50*resolution_scale, (250 + (len(time_shown)-5)*50)*resolution_scale, 50*resolution_scale))
         show_text(time_shown, 48,(0,0,0),((120 + (len(time_shown)-4)*25),80))
+
+    if fail_comment_size != 0:
+        show_text(fail_comment, fail_comment_size,(255,0,0),(world_map[-1][0]+32,world_map[-1][1]-32))
+        fail_comment_size -= 0.5
+
 
 
 def refresh_settings():
@@ -587,6 +605,7 @@ def draw_options_menu():
 def check_croc_collision():
     if max(player_x,past_coord[0][0]) - min(player_x+64, past_coord[0][0]+64) + 1 < 0 and max(player_y,past_coord[0][1]) - min(player_y+96, past_coord[0][1]+96) + 1 < 0:
         restart()
+        generate_fail_comment(croc_fail_comments)
     else:
         pass
 
@@ -617,6 +636,7 @@ while running:
                 if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                     if title_y == 128:
                         if start_option_selected == 0:
+                            world_map = levels[0]
                             level_reset()
                         elif start_option_selected == 1:
                             game_state = "controls_menu"
@@ -820,18 +840,20 @@ while running:
         # print(state)
         # print(x_velocity)
 
-        # fail
+        # spike fail
         if y_velocity < 0:
             if world_map[int((player_y + 95 + y_velocity) // 64)][int((player_x + 1) // 64)] == -1 or \
                     world_map[int((player_y + 95 + y_velocity) // 64)][int((player_x + 63) // 64)] == -1:
                 x_velocity = 0
                 y_velocity = 0
+                generate_fail_comment(spike_fail_comments)
                 restart()
         else:
             if world_map[int((player_y + 95) // 64)][int((player_x + 1) // 64)] == -1 or \
                     world_map[int((player_y + 95) // 64)][int((player_x + 63) // 64)] == -1:
                 x_velocity = 0
                 y_velocity = 0
+                generate_fail_comment(spike_fail_comments)
                 restart()
 
         if not start_moving and state != "idle":
@@ -953,6 +975,7 @@ while running:
                 if end_count > 3:
                     if event.key == pygame.K_SPACE or event.key == pygame.K_RETURN:
                         if end_option == 0:
+                            world_map = levels[0]
                             level_reset()
                         elif end_option == 1:
                             game_state = "start"
@@ -970,7 +993,7 @@ while running:
             draw_end_screen()
 
     clock.tick(FPS)
-    #print(pygame.time.Clock.get_fps(clock))
+    print(pygame.time.Clock.get_fps(clock))
 
     pygame.display.flip()
 
