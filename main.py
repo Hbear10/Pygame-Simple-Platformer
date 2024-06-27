@@ -137,6 +137,10 @@ croc_fail_comments = ["I'm sure you're tasty","Ouch","nom nom nom","You're suppo
 fail_comment_size = 0
 fail_comment = ""
 
+pause_start_time = 0
+buffer_time = 0
+
+
 def show_text(text, font_size, colour, centre_coords):
     txt = pygame.font.Font("PressStart2P.ttf", int(font_size*resolution_scale)).render(text, True, colour)
     txt_rect = txt.get_rect()
@@ -145,7 +149,7 @@ def show_text(text, font_size, colour, centre_coords):
 
 
 def level_reset():
-    global player_x, player_y, game_state, x_velocity, y_velocity, start_moving, past_coord,start_time
+    global player_x, player_y, game_state, x_velocity, y_velocity, start_moving, past_coord,start_time, buffer_time
 
     start_moving = False
     start_time[levels.index(world_map)] = 0
@@ -158,6 +162,8 @@ def level_reset():
     y_velocity = 0
 
     game_state = "level"
+
+    buffer_time = 0
 
 
 def restart():
@@ -311,7 +317,10 @@ def draw_level(world_map):
     if timer_val == 0:
 
         if start_moving:
-            time_shown = str(pygame.time.get_ticks()-start_time[levels.index(world_map)])
+            if game_state == "level":
+                time_shown = str(pygame.time.get_ticks()-start_time[levels.index(world_map)]-buffer_time)
+            elif game_state == "pause":
+                time_shown = str(pause_start_time-start_time[levels.index(world_map)]-buffer_time)
         else:
             time_shown = "0000"
 
@@ -325,7 +334,6 @@ def draw_level(world_map):
     if fail_comment_size != 0:
         show_text(fail_comment, fail_comment_size,(255,0,0),(world_map[-1][0]+32,world_map[-1][1]-32))
         fail_comment_size -= 0.5
-
 
 
 def refresh_settings():
@@ -749,6 +757,7 @@ while running:
 
                 # escape key
                 if event.key == pygame.K_ESCAPE:
+                    pause_start_time = pygame.time.get_ticks()
                     game_state = "pause"
                 # space bar
                 if event.key == pygame.K_SPACE or event.key == pygame.K_UP or event.key == pygame.K_w:
@@ -875,6 +884,7 @@ while running:
                 world_map[int((player_y + 96) // 64)][int((player_x + 65) // 64)] == -99 or \
                 world_map[int((player_y + 48) // 64)][int((player_x - 1) // 64)] == -99 or \
                 world_map[int((player_y + 48) // 64)][int((player_x + 65) // 64)] == -99:
+            time[levels.index(world_map)] -= buffer_time
             if world_map == levels[-1]:
                 game_state = "end"
                 end_time[levels.index(world_map)] = pygame.time.get_ticks()
@@ -942,6 +952,7 @@ while running:
                 # escape key
                 if event.key == pygame.K_ESCAPE:
                     game_state = "level"
+                    buffer_time += pygame.time.get_ticks() - pause_start_time
                 if event.key == pygame.K_UP:
                     if pause_option == 0:
                         pause_option = 3
@@ -993,7 +1004,7 @@ while running:
             draw_end_screen()
 
     clock.tick(FPS)
-    print(pygame.time.Clock.get_fps(clock))
+    #print(pygame.time.Clock.get_fps(clock))
 
     pygame.display.flip()
 
